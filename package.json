@@ -9,7 +9,8 @@
     "build": "npm run build -w packages/mcp-server",
     "test": "npm run test -w packages/mcp-server",
     "typecheck": "npm run typecheck -w packages/mcp-server",
-    "kb:check": "node scripts/check-knowledge.mjs"
+    "kb:check": "node scripts/check-knowledge.mjs",
+    "e2e:build": "scripts/e2e-build.sh"
   },
   "engines": {
     "node": ">=20"

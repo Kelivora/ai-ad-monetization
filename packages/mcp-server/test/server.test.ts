@@ -17,6 +17,8 @@ const EXPECTED_TOOLS = [
   'analyze_project',
   'plan_ad_placements',
   'get_integration_guide',
+  'validate_ad_config',
+  'generate_ad_integration',
 ];
 
 let client: Client;
@@ -34,13 +36,23 @@ afterAll(async () => {
 });
 
 describe('MCP server', () => {
-  it('listTools 返回 8 个只读工具', async () => {
+  it('listTools 返回 10 个工具（8 只读 + validate_ad_config 只读 + generate_ad_integration 写）', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([...EXPECTED_TOOLS].sort());
     for (const tool of tools) {
+      if (tool.name === 'generate_ad_integration') continue;
       expect(tool.annotations?.readOnlyHint).toBe(true);
       expect(tool.annotations?.destructiveHint).toBe(false);
     }
+  });
+
+  it('generate_ad_integration 注解为 WRITE 且 _meta 要求用户交互', async () => {
+    const { tools } = await client.listTools();
+    const tool = tools.find((t) => t.name === 'generate_ad_integration');
+    expect(tool).toBeDefined();
+    expect(tool?.annotations?.destructiveHint).toBe(true);
+    expect(tool?.annotations?.readOnlyHint).toBe(false);
+    expect((tool?._meta as Record<string, unknown> | undefined)?.['anthropic/requiresUserInteraction']).toBe(true);
   });
 
   it('capabilities 资源可读', async () => {

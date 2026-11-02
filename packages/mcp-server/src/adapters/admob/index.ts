@@ -1,9 +1,12 @@
 import { z } from 'zod';
-import type { IntegrationGuide, GuideInput, PlatformAdapter, SupportInfo } from '../types.js';
+import type { IntegrationGuide, GuideInput, PlatformAdapter, SupportInfo, PlanInput, IntegrationPlan, ValidationRule } from '../types.js';
 import type { KnowledgeBase } from '../../knowledge/loader.js';
 import type { AdFormat, Framework, OfficialSkillRef } from '../../knowledge/schema.js';
+import type { ProjectAnalysis } from '../../core/project/types.js';
 import { toSourceRefs } from '../../knowledge/freshness.js';
 import { AppError } from '../../lib/errors.js';
+import { planFlutterIntegration } from './flutter/plan.js';
+import { admobFlutterRules } from './flutter/rules.js';
 
 /** AdMob 适配器：由知识库驱动，MVP 中唯一 automated 的平台。 */
 export class AdMobAdapter implements PlatformAdapter {
@@ -14,7 +17,10 @@ export class AdMobAdapter implements PlatformAdapter {
     interstitialMinIntervalSeconds: z.number().int().min(0).default(180),
   });
 
-  constructor(private readonly kb: KnowledgeBase) {
+  private readonly kb: KnowledgeBase;
+
+  constructor(kb: KnowledgeBase) {
+    this.kb = kb;
     this.displayName = kb.getPlatform('admob').displayName;
   }
 
@@ -89,5 +95,19 @@ export class AdMobAdapter implements PlatformAdapter {
     }
 
     throw new AppError('UNSUPPORTED_COMBINATION', `AdMob 不支持 ${input.framework}`);
+  }
+
+  async planIntegration(project: ProjectAnalysis, input: PlanInput): Promise<IntegrationPlan> {
+    if (project.framework !== 'flutter') {
+      throw new AppError('UNSUPPORTED_COMBINATION', `AdMob 自动接入目前仅支持 Flutter（当前工程: ${project.framework}）`);
+    }
+    return planFlutterIntegration(project, input, this.kb);
+  }
+
+  validationRules(framework: Framework): ValidationRule[] {
+    if (framework !== 'flutter') {
+      throw new AppError('UNSUPPORTED_COMBINATION', `AdMob 校验规则目前仅支持 Flutter（当前: ${framework}）`);
+    }
+    return admobFlutterRules();
   }
 }
