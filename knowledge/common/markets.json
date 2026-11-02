@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "sources": [
+    {
+      "title": "AdMob Flutter privacy (UMP) guide",
+      "url": "https://developers.google.com/admob/flutter/privacy",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "AdMob Flutter targeting (child-directed)",
+      "url": "https://developers.google.com/admob/flutter/targeting",
+      "retrievedAt": "2026-11-02"
+    }
+  ],
+  "markets": [
+    {
+      "id": "US",
+      "displayName": "美国",
+      "aliases": ["United States", "USA", "美国"],
+      "regulation": "州隐私法（CCPA/CPRA 等）",
+      "summary": "可用 UMP 的 US state regulations 消息覆盖州隐私要求。"
+    },
+    {
+      "id": "EEA",
+      "displayName": "欧洲经济区",
+      "aliases": ["EU", "Europe", "欧洲"],
+      "countries": [
+        "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
+        "DE", "GR", "HU", "IE", "IS", "IT", "LV", "LI", "LT", "LU",
+        "MT", "NL", "NO", "PL", "PT", "RO", "SK", "SI", "ES", "SE"
+      ],
+      "regulation": "GDPR",
+      "summary": "必须经 Google 认证 CMP（UMP）展示 GDPR 消息并取得同意后才能请求个性化广告。"
+    },
+    {
+      "id": "UK",
+      "displayName": "英国",
+      "aliases": ["United Kingdom", "GB", "英国"],
+      "regulation": "UK GDPR",
+      "summary": "同 EEA 口径：用 UMP 展示 GDPR 消息。"
+    },
+    {
+      "id": "CH",
+      "displayName": "瑞士",
+      "aliases": ["Switzerland", "瑞士"],
+      "regulation": "revFADP（瑞士新版数据保护法）",
+      "summary": "Google 将瑞士与 EEA/UK 同口径处理：用 UMP 展示 GDPR 消息。"
+    },
+    {
+      "id": "JP",
+      "displayName": "日本",
+      "aliases": ["Japan", "日本"],
+      "regulation": "APPI",
+      "summary": "无强制 CMP 要求；需在商店隐私声明中如实披露。"
+    },
+    {
+      "id": "KR",
+      "displayName": "韩国",
+      "aliases": ["Korea", "KR", "韩国"],
+      "regulation": "PIPA",
+      "summary": "无强制 CMP 要求；需在商店隐私声明中如实披露。"
+    },
+    {
+      "id": "CN",
+      "displayName": "中国大陆",
+      "aliases": ["China", "中国大陆", "中国"],
+      "editorial": true,
+      "note": "Google Play 与 AdMob 在中国大陆不可用（编辑评估）；面向中国大陆的应用应选择国内广告平台。"
+    },
+    {
+      "id": "LATAM",
+      "displayName": "拉美",
+      "aliases": ["Latin America", "拉美"],
+      "regions": ["BR", "MX", "AR", "CL", "CO", "PE"],
+      "regulation": "各国本地法（如巴西 LGPD）",
+      "summary": "无统一 CMP 要求；巴西 LGPD 需注意隐私披露。"
+    },
+    {
+      "id": "SEA",
+      "displayName": "东南亚",
+      "aliases": ["Southeast Asia", "东南亚"],
+      "regions": ["ID", "TH", "VN", "PH", "MY", "SG"],
+      "regulation": "各国本地法（如新加坡 PDPA）",
+      "summary": "无统一 CMP 要求；按目标国隐私法披露。"
+    }
+  ]
+}

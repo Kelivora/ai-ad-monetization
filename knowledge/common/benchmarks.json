@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "heuristic": true,
+  "note": "以下阈值为启发式经验值，用于异常检测与告警，不是官方标准；不提供具体美元 eCPM 行业数字。",
+  "sources": [
+    {
+      "title": "AdMob Help Center（报表指标定义入口）",
+      "url": "https://support.google.com/admob",
+      "retrievedAt": "2026-11-02"
+    }
+  ],
+  "thresholds": [
+    {
+      "id": "match-rate-low",
+      "metric": "matchRate",
+      "direction": "below",
+      "value": 0.5,
+      "severity": "warning",
+      "message": "填充率（match rate）低于 50%：常见原因是新广告单元未生效、受众过窄或竞价配置问题。"
+    },
+    {
+      "id": "show-rate-low",
+      "metric": "showRate",
+      "direction": "below",
+      "value": 0.4,
+      "severity": "warning",
+      "message": "展示率（show rate）低于 40%：常见原因是广告加载后未及时展示（过期）或展示时机太少。"
+    },
+    {
+      "id": "ctr-abnormal",
+      "metric": "ctr",
+      "direction": "above",
+      "value": 0.2,
+      "severity": "warning",
+      "message": "CTR 异常偏高（>20%）：可能存在误点诱导，需检查广告位设计，避免账号被判定违规。"
+    }
+  ],
+  "ecpmOrdering": {
+    "expected": ["rewarded", "interstitial", "banner"],
+    "note": "经验上同一应用内 eCPM：激励 ≥ 插屏 ≥ 横幅；违反该排序通常说明某格式配置或竞价有问题。"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "id": "unity-levelplay",
+  "displayName": "Unity LevelPlay (ironSource)",
+  "vendor": "Unity",
+  "type": "mediation",
+  "status": "knowledge-only",
+  "formats": ["banner", "interstitial", "rewarded", "rewarded_interstitial", "native"],
+  "frameworks": {
+    "flutter": {
+      "support": "guided",
+      "package": "unity_levelplay_mediation",
+      "verified": false,
+      "note": "pub.dev 上的 Flutter 插件，版本未核实；仅提供引导。"
+    },
+    "unity": {
+      "support": "delegate-official-skill",
+      "package": "com.unity.services.levelplay",
+      "officialSkill": {
+        "name": "levelplay-unity-integration",
+        "repo": "https://github.com/Unity-Technologies/skills",
+        "install": "npx skills add Unity-Technologies/skills",
+        "docsUrl": "https://github.com/Unity-Technologies/skills"
+      },
+      "note": "官方 Skill（beta），要求 LevelPlay Unity 包/SDK 9.4.0+；Unity 引擎项目委派官方 Skill。"
+    },
+    "android": {
+      "support": "guided",
+      "package": "LevelPlay Android SDK",
+      "verified": false,
+      "note": "原生接入按官方文档引导。"
+    },
+    "ios": {
+      "support": "guided",
+      "package": "LevelPlay iOS SDK",
+      "verified": false,
+      "note": "原生接入按官方文档引导。"
+    },
+    "react-native": {
+      "support": "unsupported",
+      "note": "无官方/主流社区支持。"
+    }
+  },
+  "reporting": {
+    "available": true,
+    "api": "LevelPlay (ironSource) Reporting API",
+    "url": "https://platform.ironsrc.com/partners/dashboard/reporting",
+    "consoleUrl": "https://platform.ironsrc.com/",
+    "requiresOAuth": false,
+    "note": "控制台报表 + Reporting API（Secret Key）；具体 API 细节未核实（verified: false）。"
+  },
+  "editorial": {
+    "selection": {
+      "scores": {
+        "onboardingEase": 3,
+        "formatCoverage": 5,
+        "mediation": 5,
+        "gamingFocus": 5,
+        "nonGamingFit": 2,
+        "flutterSupport": 2
+      },
+      "marketFit": { "global": 4, "US": 4, "EU": 4, "JP": 3, "KR": 3, "CN": 1 },
+      "rationale": "LevelPlay 游戏类表现强、与 Unity 生态结合紧密；非游戏与 Flutter 支持弱（编辑评估）。"
+    }
+  },
+  "sources": [
+    {
+      "title": "unity_levelplay_mediation (pub.dev)",
+      "url": "https://pub.dev/packages/unity_levelplay_mediation",
+      "retrievedAt": "2026-11-02",
+      "verifiedVersion": null
+    },
+    {
+      "title": "Unity-Technologies/skills 仓库（levelplay-unity-integration）",
+      "url": "https://github.com/Unity-Technologies/skills",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "LevelPlay 控制台",
+      "url": "https://platform.ironsrc.com/",
+      "retrievedAt": "2026-11-02"
+    }
+  ]
+}

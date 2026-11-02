@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "platformId": "admob",
+  "prefix": "ca-app-pub-3940256099942544",
+  "regex": {
+    "appId": "^(ca-app-pub-[a-zA-Z0-9\\-]+)~(.*)$",
+    "adUnit": "^(ca-app-pub-[a-zA-Z0-9\\-]+)/([a-zA-Z0-9_\\-]+)(/.*)?$"
+  },
+  "appId": {
+    "android": "ca-app-pub-3940256099942544~3347511713",
+    "ios": "ca-app-pub-3940256099942544~1458002511"
+  },
+  "adUnits": [
+    {
+      "format": "banner",
+      "label": "自适应横幅（anchored adaptive）",
+      "android": "ca-app-pub-3940256099942544/9214589741",
+      "ios": "ca-app-pub-3940256099942544/2435281174"
+    },
+    {
+      "format": "interstitial",
+      "android": "ca-app-pub-3940256099942544/1033173712",
+      "ios": "ca-app-pub-3940256099942544/4411468910"
+    },
+    {
+      "format": "rewarded",
+      "android": "ca-app-pub-3940256099942544/5224354917",
+      "ios": "ca-app-pub-3940256099942544/1712485313"
+    }
+  ],
+  "sources": [
+    {
+      "title": "AdMob Flutter banner guide",
+      "url": "https://developers.google.com/admob/flutter/banner",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "AdMob Flutter interstitial guide",
+      "url": "https://developers.google.com/admob/flutter/interstitial",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "AdMob Flutter rewarded guide",
+      "url": "https://developers.google.com/admob/flutter/rewarded",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "Google skills get-started references（测试 App ID）",
+      "url": "https://github.com/google/skills/tree/main/skills/ads",
+      "retrievedAt": "2026-11-02"
+    }
+  ]
+}

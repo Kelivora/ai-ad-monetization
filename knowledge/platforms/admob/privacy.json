@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "platformId": "admob",
+  "disclaimer": "技术指引，不是法律建议。合规要求以各法域现行法规及平台政策为准，必要时咨询法律专业人士。",
+  "requirements": [
+    {
+      "markets": ["EEA", "UK", "CH"],
+      "topic": "gdpr",
+      "requirement": "必须使用 Google 认证 CMP（UMP）向用户展示 GDPR 消息并征得同意后才能请求广告（个性化或非个性化均需同意）。",
+      "implementation": [
+        "在 AdMob 后台 Privacy & messaging 手动创建并发布 GDPR 消息（无 API，必须用户操作）",
+        "每次启动：ConsentInformation.instance.requestConsentInfoUpdate(ConsentRequestParameters(), onSuccess, onFailure)",
+        "ConsentForm.loadAndShowConsentFormIfRequired(cb)",
+        "请求广告前检查 ConsentInformation.instance.canRequestAds()（在 requestConsentInfoUpdate 之前恒为 false）"
+      ],
+      "sourceUrl": "https://developers.google.com/admob/flutter/privacy"
+    },
+    {
+      "markets": ["US"],
+      "topic": "us-state-privacy",
+      "requirement": "州隐私法（如 CCPA/CPRA）要求下，可用 UMP 的 US state regulations 消息向加州等州用户披露并征得选择。",
+      "implementation": [
+        "在 AdMob 后台 Privacy & messaging 创建 US state regulations 消息",
+        "复用同一 UMP 流程（requestConsentInfoUpdate → loadAndShowConsentFormIfRequired）"
+      ],
+      "sourceUrl": "https://developers.google.com/admob/flutter/privacy"
+    },
+    {
+      "markets": ["*"],
+      "topic": "privacy-options-entry",
+      "requirement": "当 getPrivacyOptionsRequirementStatus() == PrivacyOptionsRequirementStatus.required 时，应用必须提供隐私选项入口。",
+      "implementation": [
+        "提供 UI 入口调用 ConsentForm.showPrivacyOptionsForm"
+      ],
+      "sourceUrl": "https://developers.google.com/admob/flutter/privacy"
+    },
+    {
+      "markets": ["*"],
+      "topic": "child-directed",
+      "requirement": "面向儿童（COPPA）或不足龄用户的应用必须标记子女导向/不足龄同意状态。",
+      "implementation": [
+        "RequestConfiguration(tagForChildDirectedTreatment: TagForChildDirectedTreatment.yes)",
+        "不足龄同意：tagForUnderAgeOfConsent: TagForUnderAgeOfConsent.yes",
+        "通过 MobileAds.instance.updateRequestConfiguration(...) 生效"
+      ],
+      "sourceUrl": "https://developers.google.com/admob/flutter/targeting"
+    },
+    {
+      "markets": ["*"],
+      "topic": "ios-att",
+      "requirement": "iOS 上如需访问 IDFA（个性化广告），需要 App Tracking Transparency 授权；不请求则只能拿到非个性化广告，收益可能下降。",
+      "implementation": [
+        "Info.plist 添加 NSUserTrackingUsageDescription",
+        "用 ATT 弹窗请求授权（可选，取决于是否需要 IDFA）"
+      ],
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "markets": ["*"],
+      "topic": "store-declaration",
+      "requirement": "商店数据安全声明需由用户如实填写，覆盖广告 SDK 收集的数据类型。",
+      "implementation": [
+        "Google Play：Data safety 表单（用户手动填写）",
+        "App Store：App Privacy 标签（用户手动填写）"
+      ],
+      "sourceUrl": "https://developers.google.com/admob/flutter/privacy"
+    }
+  ],
+  "testing": {
+    "debugGeography": "ConsentDebugSettings(debugGeography: DebugGeography.debugGeographyEea, testIdentifiers: [...])",
+    "reset": "ConsentInformation.instance.reset()"
+  },
+  "sources": [
+    {
+      "title": "AdMob Flutter privacy (UMP) guide",
+      "url": "https://developers.google.com/admob/flutter/privacy",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "AdMob Flutter targeting guide",
+      "url": "https://developers.google.com/admob/flutter/targeting",
+      "retrievedAt": "2026-11-02"
+    }
+  ]
+}

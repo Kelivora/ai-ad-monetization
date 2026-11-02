@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "id": "admob",
+  "displayName": "Google AdMob",
+  "vendor": "Google",
+  "type": "network",
+  "status": "automated",
+  "formats": ["banner", "interstitial", "rewarded", "rewarded_interstitial", "native", "app_open"],
+  "frameworks": {
+    "flutter": {
+      "support": "automated",
+      "package": "google_mobile_ads",
+      "note": "官方 Flutter 插件，MVP 全自动接入对象（仅 Android/iOS）。"
+    },
+    "android": {
+      "support": "delegate-official-skill",
+      "package": "com.google.android.gms:play-services-ads",
+      "officialSkill": {
+        "name": "google-mobile-ads-*",
+        "repo": "https://github.com/google/skills/tree/main/skills/ads",
+        "install": "npx skills add google/skills/skills/ads",
+        "docsUrl": "https://developers.google.com/admob/android/next-gen/agent-skills"
+      },
+      "note": "原生 Android 委派 Google 官方 Skills 处理。"
+    },
+    "ios": {
+      "support": "delegate-official-skill",
+      "package": "Google-Mobile-Ads-SDK",
+      "officialSkill": {
+        "name": "google-mobile-ads-*",
+        "repo": "https://github.com/google/skills/tree/main/skills/ads",
+        "install": "npx skills add google/skills/skills/ads",
+        "docsUrl": "https://developers.google.com/admob/android/next-gen/agent-skills"
+      },
+      "note": "原生 iOS 委派 Google 官方 Skills 处理。"
+    },
+    "unity": {
+      "support": "delegate-official-skill",
+      "package": "Google Mobile Ads Unity Plugin",
+      "officialSkill": {
+        "name": "google-mobile-ads-*",
+        "repo": "https://github.com/google/skills/tree/main/skills/ads",
+        "install": "npx skills add google/skills/skills/ads",
+        "docsUrl": "https://developers.google.com/admob/android/next-gen/agent-skills"
+      },
+      "note": "Unity 引擎项目委派 Google 官方 Skills 处理。"
+    },
+    "react-native": {
+      "support": "guided",
+      "package": "react-native-google-mobile-ads",
+      "verified": false,
+      "note": "社区库（非官方），版本号未核实；只提供引导式指南，不做自动接入。"
+    }
+  },
+  "reporting": {
+    "available": true,
+    "api": "Google AdMob API v1beta (reports.generate)",
+    "url": "https://developers.google.com/admob/api/v1beta/reference/rest/v1beta/accounts.networkReport/generate",
+    "requiresOAuth": true,
+    "note": "需要用户自行完成的 OAuth 授权（MVP 只读取用户提供的访问令牌）。"
+  },
+  "editorial": {
+    "selection": {
+      "scores": {
+        "onboardingEase": 5,
+        "formatCoverage": 4,
+        "mediation": 3,
+        "gamingFocus": 3,
+        "nonGamingFit": 5,
+        "flutterSupport": 5
+      },
+      "marketFit": { "global": 5, "US": 5, "EU": 5, "JP": 4, "KR": 3, "CN": 1 },
+      "rationale": "AdMob 上手最容易（单插件覆盖 Android/iOS）、非游戏类适配好、自带 UMP 合规流程、Flutter 有官方插件，是 MVP 默认推荐。CN 不可用；KR/JP 填充与 eCPM 相对本土平台偏弱（编辑评估）。"
+    }
+  },
+  "sources": [
+    {
+      "title": "google_mobile_ads changelog (pub.dev)",
+      "url": "https://pub.dev/packages/google_mobile_ads/changelog",
+      "retrievedAt": "2026-11-02",
+      "verifiedVersion": "google_mobile_ads 9.2.0"
+    },
+    {
+      "title": "Google Mobile Ads agent skills",
+      "url": "https://developers.google.com/admob/android/next-gen/agent-skills",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "google/skills 仓库",
+      "url": "https://github.com/google/skills/tree/main/skills/ads",
+      "retrievedAt": "2026-11-02"
+    }
+  ]
+}

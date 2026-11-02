@@ -1,0 +1,17 @@
+{
+  "name": "ai-ad-monetization",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/mcp-server",
+    "test": "npm run test -w packages/mcp-server",
+    "typecheck": "npm run typecheck -w packages/mcp-server",
+    "kb:check": "node scripts/check-knowledge.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

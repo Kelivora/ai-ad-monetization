@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "platformId": "admob",
+  "errors": [
+    {
+      "code": 0,
+      "name": "INTERNAL_ERROR",
+      "symptom": "LoadAdError code 0，广告加载失败。",
+      "cause": "SDK 内部错误，通常为瞬时问题。",
+      "fix": "重试加载；若持续出现检查 SDK 版本与网络环境。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": 1,
+      "name": "INVALID_REQUEST",
+      "symptom": "LoadAdError code 1，广告加载失败。",
+      "cause": "请求参数无效，最常见是广告单元 ID 错误（格式不对、平台不匹配或不存在）。",
+      "fix": "核对广告单元 ID 是否符合 ^(ca-app-pub-[a-zA-Z0-9\\-]+)/([a-zA-Z0-9_\\-]+)(/.*)?$ 且属于当前平台与应用。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": 2,
+      "name": "NETWORK_ERROR",
+      "symptom": "LoadAdError code 2，广告加载失败。",
+      "cause": "设备网络不可用或无法访问广告服务器。",
+      "fix": "检查设备联网；在真实网络环境（非受限代理）下重试。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": 3,
+      "name": "NO_FILL",
+      "symptom": "LoadAdError code 3，广告加载失败。",
+      "cause": "无广告填充。新创建的广告单元可能需要数小时才有效果；应用未通过审核时也可能无填充。",
+      "fix": "新广告单元等待数小时后重试；确认应用已在 AdMob 审核通过；开发期使用官方测试 ID。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": "MISSING_APP_ID_ANDROID",
+      "name": "启动崩溃（Android）",
+      "symptom": "Android 启动即崩溃，异常信息包含 \"The Google Mobile Ads SDK was initialized incorrectly\"。",
+      "cause": "AndroidManifest.xml 的 <application> 内缺少 com.google.android.gms.ads.APPLICATION_ID meta-data。",
+      "fix": "在 android/app/src/main/AndroidManifest.xml 的 <application> 内添加 <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"...\"/>。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": "MISSING_APP_ID_IOS",
+      "name": "启动崩溃（iOS）",
+      "symptom": "iOS 启动即崩溃，抛出 GADInvalidInitializationException。",
+      "cause": "ios/Runner/Info.plist 缺少 GADApplicationIdentifier。",
+      "fix": "在 ios/Runner/Info.plist 添加 GADApplicationIdentifier 键，值为 AdMob App ID（ca-app-pub-xxx~xxx）。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": "MIN_SDK_TOO_LOW",
+      "name": "Gradle manifest merger 失败",
+      "symptom": "构建报 uses-sdk:minSdkVersion 错误（manifest merger）。",
+      "cause": "工程 minSdk 低于插件要求的 24。",
+      "fix": "在 android/app/build.gradle 中把 minSdkVersion 提升到 24 及以上。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": "IOS_DEPLOYMENT_TARGET_TOO_LOW",
+      "name": "pod install 失败",
+      "symptom": "iOS pod install 报部署目标不满足。",
+      "cause": "工程 iOS 部署目标低于插件要求的 13.0。",
+      "fix": "在 Podfile 中把平台部署目标提升到 13.0 及以上。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/quick-start"
+    },
+    {
+      "code": "CAN_REQUEST_ADS_FALSE",
+      "name": "canRequestAds 一直为 false",
+      "symptom": "UMP 流程后 ConsentInformation.instance.canRequestAds() 始终返回 false。",
+      "cause": "未调用 requestConsentInfoUpdate，或 GDPR/US 消息尚未在 AdMob 后台 Privacy & messaging 发布。",
+      "fix": "确认每次启动都先 requestConsentInfoUpdate；确认后台消息已创建并发布。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/privacy"
+    },
+    {
+      "code": "ADWIDGET_INVISIBLE_IOS",
+      "name": "AdWidget 不显示（iOS）",
+      "symptom": "iOS 上 AdWidget 区域空白。",
+      "cause": "AdWidget 没有放在指定宽高的容器里。",
+      "fix": "用固定宽高的 SizedBox（或等价容器）包裹 AdWidget。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/banner"
+    },
+    {
+      "code": "ADWIDGET_ALREADY_IN_TREE",
+      "name": "This AdWidget is already in the Widget tree",
+      "symptom": "运行时抛出 \"This AdWidget is already in the Widget tree\"。",
+      "cause": "同一个 Ad 对象被两个 AdWidget 同时使用。",
+      "fix": "每个 Ad 实例只对应一个 AdWidget；重建 UI 时先 dispose 旧广告再创建新实例。",
+      "sourceUrl": "https://developers.google.com/admob/flutter/banner"
+    }
+  ],
+  "sources": [
+    {
+      "title": "AdMob Flutter quick start",
+      "url": "https://developers.google.com/admob/flutter/quick-start",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "AdMob Flutter banner guide",
+      "url": "https://developers.google.com/admob/flutter/banner",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "AdMob Flutter privacy guide",
+      "url": "https://developers.google.com/admob/flutter/privacy",
+      "retrievedAt": "2026-11-02"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "platformId": "admob",
+  "framework": "flutter",
+  "plugin": {
+    "name": "google_mobile_ads",
+    "version": "9.2.0",
+    "pubUrl": "https://pub.dev/packages/google_mobile_ads"
+  },
+  "constraints": {
+    "flutter": ">=3.38.1",
+    "dart": ">=3.10.0"
+  },
+  "supportedTargets": {
+    "android": true,
+    "ios": true,
+    "web": false,
+    "desktop": false
+  },
+  "android": {
+    "minSdk": 24,
+    "compileSdk": 36,
+    "playServicesAds": "25.5.0",
+    "nextGenSdk": {
+      "optional": true,
+      "dependency": "com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk",
+      "version": "1.5.0"
+    },
+    "ump": "com.google.android.ump:user-messaging-platform 4.0.0"
+  },
+  "ios": {
+    "deploymentTarget": "13.0",
+    "googleMobileAdsSdk": "~> 13.11",
+    "ump": "3.1.0",
+    "packageManagers": ["cocoapods", "swift-package-manager"]
+  },
+  "sources": [
+    {
+      "title": "google_mobile_ads changelog (pub.dev)",
+      "url": "https://pub.dev/packages/google_mobile_ads/changelog",
+      "retrievedAt": "2026-11-02",
+      "verifiedVersion": "google_mobile_ads 9.2.0"
+    },
+    {
+      "title": "AdMob Flutter quick start",
+      "url": "https://developers.google.com/admob/flutter/quick-start",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "googleads-mobile-flutter android/build.gradle",
+      "url": "https://github.com/googleads/googleads-mobile-flutter/blob/main/packages/google_mobile_ads/android/build.gradle",
+      "retrievedAt": "2026-11-02",
+      "verifiedVersion": "google_mobile_ads 9.2.0"
+    },
+    {
+      "title": "googleads-mobile-flutter ios/google_mobile_ads.podspec",
+      "url": "https://github.com/googleads/googleads-mobile-flutter/blob/main/packages/google_mobile_ads/ios/google_mobile_ads.podspec",
+      "retrievedAt": "2026-11-02",
+      "verifiedVersion": "google_mobile_ads 9.2.0"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "id": "applovin-max",
+  "displayName": "AppLovin MAX",
+  "vendor": "AppLovin",
+  "type": "mediation",
+  "status": "knowledge-only",
+  "formats": ["banner", "interstitial", "rewarded", "rewarded_interstitial", "native", "app_open"],
+  "frameworks": {
+    "flutter": {
+      "support": "guided",
+      "package": "applovin_max",
+      "verified": false,
+      "note": "pub.dev 上的社区/第三方 Flutter 插件，版本未核实；仅提供引导。"
+    },
+    "android": {
+      "support": "guided",
+      "package": "AppLovin MAX Android SDK",
+      "verified": false,
+      "note": "原生接入按官方文档引导，无官方 Skill 可委派。"
+    },
+    "ios": {
+      "support": "guided",
+      "package": "AppLovin MAX iOS SDK",
+      "verified": false,
+      "note": "原生接入按官方文档引导，无官方 Skill 可委派。"
+    },
+    "unity": {
+      "support": "guided",
+      "package": "AppLovin MAX Unity Plugin",
+      "verified": false,
+      "note": "原生接入按官方文档引导，无官方 Skill 可委派。"
+    },
+    "react-native": {
+      "support": "guided",
+      "package": "react-native-applovin-max",
+      "verified": false,
+      "note": "社区库，版本未核实。"
+    }
+  },
+  "reporting": {
+    "available": true,
+    "api": "MAX Revenue Reporting API (maxReport)",
+    "url": "https://developers.applovin.com/en/max/reporting-apis/revenue-reporting-api/",
+    "endpoint": "https://r.applovin.com/maxReport",
+    "requiresOAuth": false,
+    "note": "使用 API Key（Report Key）而非 OAuth；官方 AppLovin MCP 只面向投放侧（Axon）且为白名单 beta，不覆盖变现侧。"
+  },
+  "editorial": {
+    "selection": {
+      "scores": {
+        "onboardingEase": 3,
+        "formatCoverage": 5,
+        "mediation": 5,
+        "gamingFocus": 5,
+        "nonGamingFit": 3,
+        "flutterSupport": 3
+      },
+      "marketFit": { "global": 4, "US": 5, "EU": 4, "JP": 4, "KR": 3, "CN": 1 },
+      "rationale": "MAX 聚合竞价强、游戏类应用收益表现好，但接入与后台配置工作量大于 AdMob，且 Flutter 只有无官方支持的插件（编辑评估）。"
+    }
+  },
+  "sources": [
+    {
+      "title": "MAX Revenue Reporting API",
+      "url": "https://developers.applovin.com/en/max/reporting-apis/revenue-reporting-api/",
+      "retrievedAt": "2026-11-02"
+    },
+    {
+      "title": "applovin_max (pub.dev)",
+      "url": "https://pub.dev/packages/applovin_max",
+      "retrievedAt": "2026-11-02",
+      "verifiedVersion": null
+    }
+  ]
+}

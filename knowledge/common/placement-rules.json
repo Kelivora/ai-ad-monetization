@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "editorial": true,
+  "note": "以下规则为编辑性/启发式策略（部分来源为 Google 官方 Banner 指南，策略档为编辑评估），非官方硬性规定。",
+  "sources": [
+    {
+      "title": "AdMob Flutter banner guide",
+      "url": "https://developers.google.com/admob/flutter/banner",
+      "retrievedAt": "2026-11-02"
+    }
+  ],
+  "banner": {
+    "rule": "按宿主容器是否可滚动选择自适应类型",
+    "scrollable": {
+      "placement": "inline adaptive",
+      "rationale": "可滚动内容流中嵌入 inline adaptive banner，随内容加载展示，体验与收益均衡。"
+    },
+    "nonScrollable": {
+      "placement": "large anchored adaptive",
+      "rationale": "不可滚动页面（设置页、关卡页）底部/顶部锚定 large anchored adaptive banner。"
+    },
+    "api": "AdSize.getLargeAnchoredAdaptiveBannerAdSize(width)（anchored）；inline 用 AnchoredAdaptiveBannerAdSize 相关自适应 API"
+  },
+  "interstitial": {
+    "rule": "只在自然断点展示，并做频控",
+    "naturalBreakPoints": ["关卡结束", "任务完成", "内容切换"],
+    "rationale": "在用户完成一个内容单元的节点插入，中断感最低。"
+  },
+  "rewarded": {
+    "rule": "必须由用户主动触发",
+    "rationale": "激励广告的价值在于用户用注意力换取奖励，强制展示违反政策且破坏体验。"
+  },
+  "policies": [
+    {
+      "id": "revenue",
+      "label": "收益优先",
+      "formatPriority": ["rewarded", "interstitial", "banner"],
+      "interstitialFrequencySeconds": 180,
+      "notes": "高频插屏，收益最大化，适合工具/内容型 App 的高容忍用户。"
+    },
+    {
+      "id": "balanced",
+      "label": "均衡",
+      "formatPriority": ["rewarded", "banner", "interstitial"],
+      "interstitialFrequencySeconds": 300,
+      "notes": "默认档：体验与收益折中。"
+    },
+    {
+      "id": "ux",
+      "label": "体验优先",
+      "formatPriority": ["banner", "rewarded", "interstitial"],
+      "interstitialFrequencySeconds": 600,
+      "notes": "插屏低频或完全不自动展示（由自然断点 + 长间隔约束）。"
+    }
+  ]
+}

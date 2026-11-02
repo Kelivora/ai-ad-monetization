@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-11-02",
+  "reviewIntervalDays": 120,
+  "sources": [
+    {
+      "title": "google_mobile_ads changelog (pub.dev)",
+      "url": "https://pub.dev/packages/google_mobile_ads/changelog",
+      "retrievedAt": "2026-11-02",
+      "verifiedVersion": "google_mobile_ads 9.2.0"
+    },
+    {
+      "title": "AdMob Flutter quick start",
+      "url": "https://developers.google.com/admob/flutter/quick-start",
+      "retrievedAt": "2026-11-02"
+    }
+  ],
+  "platforms": [
+    {
+      "id": "admob",
+      "path": "platforms/admob",
+      "status": "automated",
+      "summary": "Google AdMob：MVP 唯一 automated 平台，Flutter 官方插件。"
+    },
+    {
+      "id": "applovin-max",
+      "path": "platforms/applovin-max",
+      "status": "knowledge-only",
+      "summary": "AppLovin MAX：聚合平台，变现侧无官方 MCP，MVP 仅提供知识。"
+    },
+    {
+      "id": "unity-levelplay",
+      "path": "platforms/unity-levelplay",
+      "status": "knowledge-only",
+      "summary": "Unity LevelPlay (ironSource)：聚合平台，Unity 引擎可委派官方 Skill。"
+    }
+  ]
+}
