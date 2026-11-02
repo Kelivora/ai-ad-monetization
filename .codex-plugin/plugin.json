@@ -1,0 +1,29 @@
+{
+  "name": "ai-ad-monetization",
+  "version": "0.1.0",
+  "description": "Plan, integrate, validate, and optimize mobile ad monetization (AdMob x Flutter in MVP) via the ad-monetization MCP server and workflow skills.",
+  "keywords": [
+    "ads",
+    "admob",
+    "monetization",
+    "flutter",
+    "mcp",
+    "mobile"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "AI Ad Monetization",
+    "shortDescription": "Ad monetization workflows for mobile apps.",
+    "longDescription": "Selects an ad platform, plans placements, checks privacy compliance, integrates the SDK (AdMob x Flutter automated), validates config, verifies builds, and analyzes revenue.",
+    "capabilities": [
+      "read",
+      "write"
+    ],
+    "defaultPrompt": [
+      "帮我给这个 App 接入广告变现，主要面向美国和欧洲用户。",
+      "Compare AdMob, AppLovin MAX and Unity LevelPlay for my Flutter app.",
+      "Validate my ad configuration for release."
+    ]
+  }
+}

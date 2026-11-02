@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "ai-ad-monetization",
+  "description": "AI-driven ad monetization: skills + MCP server for platform selection, SDK integration, compliance, verification and revenue analysis.",
+  "owner": {
+    "name": "AI Ad Monetization maintainers"
+  },
+  "plugins": [
+    {
+      "name": "ai-ad-monetization",
+      "displayName": "AI Ad Monetization",
+      "source": ".",
+      "description": "Plan, integrate, validate, and optimize mobile ad monetization (AdMob x Flutter in MVP) via the ad-monetization MCP server and workflow skills.",
+      "version": "0.1.0",
+      "category": "developer-tools",
+      "keywords": [
+        "ads",
+        "admob",
+        "monetization",
+        "flutter",
+        "mobile"
+      ]
+    }
+  ]
+}

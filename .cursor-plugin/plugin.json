@@ -1,0 +1,18 @@
+{
+  "name": "ai-ad-monetization",
+  "version": "0.1.0",
+  "description": "Plan, integrate, validate, and optimize mobile ad monetization (AdMob x Flutter in MVP) via the ad-monetization MCP server and workflow skills.",
+  "keywords": [
+    "ads",
+    "admob",
+    "monetization",
+    "flutter",
+    "mcp",
+    "mobile"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "owner": {
+    "name": "AI Ad Monetization maintainers"
+  }
+}
