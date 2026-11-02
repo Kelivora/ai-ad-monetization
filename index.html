@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en-title="AI Ad Monetization: your agent ships the app. We make the ads pay." data-zh-title="AI Ad Monetization：Agent 负责把应用做出来，我们负责让广告赚钱">AI Ad Monetization: your agent ships the app. We make the ads pay.</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js');try{var l=localStorage.getItem('aam-lang');if(l==='zh'){document.documentElement.setAttribute('data-lang','zh');document.documentElement.lang='zh';}}catch(e){}</script>
+</head>
+<body>
+
+<header class="bar">
+  <a class="wordmark" href="#top">AI Ad Monetization</a>
+  <nav class="bar-nav" aria-label="Site">
+    <a href="docs.html"><span class="en">Docs</span><span class="zh">文档</span></a>
+    <a href="#prompt"><span class="en">See the ads</span><span class="zh">看真实广告</span></a>
+    <a href="#support"><span class="en">What it covers</span><span class="zh">覆盖什么</span></a>
+  </nav>
+  <button class="lang" id="lang-toggle" type="button">中文</button>
+  <a class="button" href="docs.html"><span class="en">Give this to your agent</span><span class="zh">把这个交给 Agent</span></a>
+</header>
+
+<main>
+
+<!-- Hero -->
+<section class="hero" id="top">
+  <div class="hero-copy">
+    <p class="hero-meta" data-load style="--d:280ms">
+      <span class="en">mcp · skills · knowledge</span><span class="zh">mcp · skills · 知识库</span>
+      <span aria-hidden="true">/</span>
+      <span class="en">admob × flutter</span><span class="zh">admob × flutter</span>
+      <span aria-hidden="true">/</span>
+      <span class="en">read 12 · write 1 · run 1</span><span class="zh">只读 12 · 写入 1 · 执行 1</span>
+    </p>
+    <h1 class="display lines">
+      <span class="line"><span class="en" data-line style="--i:0">Your agent built</span><span class="zh" data-line style="--i:0">应用已经写好。</span></span>
+      <span class="line"><span class="en" data-line style="--i:1">the app. Now make it pay.</span><span class="zh" data-line style="--i:1">现在让它赚钱。</span></span>
+    </h1>
+    <p class="lead" data-load style="--d:420ms">
+      <span class="en">Coding agents are good at product. They are reckless with ads. They pick the wrong network, skip consent, ship Google’s test IDs, and call a green build a working ad. This is the specialist you hand them: it chooses the network, writes AdMob into Flutter, and will not call a skipped check a pass.</span>
+      <span class="zh">写代码的 Agent 擅长做产品，做广告时却会乱来：选错平台，跳过隐私同意，把 Google 测试 ID 带进正式包，还把编译通过当成广告能播。把这个专家交给它：它会选定平台，把 AdMob 写进 Flutter，没真正跑过的检查绝不会标成通过。</span>
+    </p>
+    <p class="hero-cta" data-load style="--d:480ms"><a class="button" href="docs.html"><span class="en">Give this to your agent</span><span class="zh">把这个交给 Agent</span></a></p>
+  </div>
+  <p class="hero-status" aria-hidden="true">
+    <span>static</span>
+    <span>build</span>
+    <span>runtime</span>
+    <span class="en">skipped ≠ passed</span><span class="zh">跳过 ≠ 通过</span>
+  </p>
+</section>
+
+<!-- How it works -->
+<section class="method" id="method">
+  <h2 data-reveal><span class="en">From guesswork to a plan you can ship</span><span class="zh">从瞎猜，到一份能上线的计划</span></h2>
+  <div class="method-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en"><strong>First,</strong> it looks at the app you already have: Flutter or not, Android and iOS, and any ads code sitting in the tree.</span>
+      <span class="zh"><strong>先看现成的应用：</strong>是不是 Flutter，有没有 Android 和 iOS，工程里是不是已经写过广告。</span>
+    </p>
+    <div class="frag" data-ui data-reveal style="--d:160ms"><span class="frag-row">framework: flutter</span></div>
+    <p data-reveal style="--d:80ms">
+      <span class="en"><strong>Then</strong> you get a plan and a diff. Nothing is written until you say yes.</span>
+      <span class="zh"><strong>然后给你一份计划和改动对照。</strong>你点头之前，它一个文件都不改。</span>
+    </p>
+    <div class="frag" data-ui data-reveal style="--d:160ms">
+      <span class="frag-row"><span class="frag-file">lib/main.dart</span><span class="frag-add">+2</span></span>
+      <span class="frag-row">plan hash required</span>
+    </div>
+    <p data-reveal style="--d:80ms">
+      <span class="en"><strong>After you confirm,</strong> it adds the ads code, backs up every file it touches, and leaves your product logic alone.</span>
+      <span class="zh"><strong>你确认之后，</strong>它才写入广告代码，改过的文件都会备份，你的业务逻辑原封不动。</span>
+    </p>
+    <ul class="frag frag-list" data-ui data-reveal style="--d:160ms">
+      <li>lib/ads/ads.dart</li>
+      <li>lib/ads/ad_unit_ids.dart</li>
+      <li>lib/ads/ads_consent.dart</li>
+      <li>lib/ads/ads_initializer.dart</li>
+      <li>lib/ads/anchored_banner_ad.dart</li>
+      <li>lib/ads/interstitial_ad_controller.dart</li>
+      <li>lib/ads/rewarded_ad_controller.dart</li>
+      <li>integration_test/ads_smoke_test.dart</li>
+      <li>pubspec.yaml</li>
+      <li>android/app/src/main/AndroidManifest.xml</li>
+      <li>ios/Runner/Info.plist</li>
+      <li>lib/main.dart</li>
+    </ul>
+    <p data-reveal style="--d:80ms">
+      <span class="en"><strong>Then it checks the work in three layers:</strong> the config, the build, and a real test ad on a device. A missing toolchain is skipped, and skipped is never a pass.</span>
+      <span class="zh"><strong>接着分三层核对：</strong>配置对不对、能不能编过、设备上能不能播出测试广告。缺工具的步骤会标明跳过，跳过绝不算通过。</span>
+    </p>
+    <div class="frag" data-ui data-reveal style="--d:160ms"><span class="frag-words">static&ensp;·&ensp;build&ensp;·&ensp;runtime</span></div>
+  </div>
+</section>
+
+<section class="proof" id="verify">
+  <h2 data-reveal><span class="en">Turn a tool off. Watch what happens.</span><span class="zh">关掉一样工具，看它怎么报。</span></h2>
+  <div class="proof-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en">Uncheck Android, or the phone. The matching step is skipped, and skipped is never counted as passed. That is the difference between a green build and an ad that actually shows.</span>
+      <span class="zh">把 Android 或者手机勾掉。对应的那一步会变成跳过，跳过绝不算通过。编译通过，和广告真的播出来，不是一回事。</span>
+    </p>
+    <div class="ledger" data-ui data-reveal style="--d:160ms" aria-label="Verification ledger">
+      <div class="ledger-tools">
+        <label class="tool"><input type="checkbox" data-tool="flutter" checked><span><span class="en">Flutter</span><span class="zh">Flutter</span></span></label>
+        <label class="tool"><input type="checkbox" data-tool="jdk" checked><span><span class="en">JDK and Android SDK</span><span class="zh">JDK 与 Android SDK</span></span></label>
+        <label class="tool"><input type="checkbox" data-tool="xcode" checked><span><span class="en">Xcode</span><span class="zh">Xcode</span></span></label>
+        <label class="tool"><input type="checkbox" data-tool="device" checked><span><span class="en">A phone or simulator</span><span class="zh">手机或模拟器</span></span></label>
+      </div>
+      <div class="ledger-levels">
+        <div class="ledger-level">
+          <span class="ledger-name">static</span>
+          <span class="ledger-status is-passed" data-ledger="static-status"><span class="en">passed</span><span class="zh">通过</span></span>
+          <span class="ledger-detail" data-ledger="static-detail"><span class="en">21 passed, 0 failed</span><span class="zh">21 项通过，0 项失败</span></span>
+        </div>
+        <div class="ledger-level">
+          <span class="ledger-name">build</span>
+          <span class="ledger-status is-passed" data-ledger="build-status"><span class="en">passed</span><span class="zh">通过</span></span>
+          <ul class="ledger-steps">
+            <li><span class="step-name">pub get</span><span class="step-status is-passed" data-ledger="step-pubget"><span class="en">passed</span><span class="zh">通过</span></span></li>
+            <li><span class="step-name">analyze</span><span class="step-status is-passed" data-ledger="step-analyze"><span class="en">passed</span><span class="zh">通过</span></span></li>
+            <li><span class="step-name"><span class="en">Android debug</span><span class="zh">Android 调试构建</span></span><span class="step-status is-passed" data-ledger="step-android"><span class="en">passed</span><span class="zh">通过</span></span></li>
+            <li><span class="step-name"><span class="en">iOS simulator</span><span class="zh">iOS 模拟器</span></span><span class="step-status is-passed" data-ledger="step-ios"><span class="en">passed</span><span class="zh">通过</span></span></li>
+          </ul>
+        </div>
+        <div class="ledger-level">
+          <span class="ledger-name">runtime</span>
+          <span class="ledger-status is-passed" data-ledger="runtime-status"><span class="en">passed</span><span class="zh">通过</span></span>
+          <span class="ledger-detail" data-ledger="runtime-detail"><span class="en">6 of 6 checks passed</span><span class="zh">6 项全部通过</span></span>
+        </div>
+      </div>
+      <p class="ledger-footer" data-ledger="footer"><span class="en">Android and iOS both built.</span><span class="zh">Android 和 iOS 都完成了构建。</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- Showcase -->
+<section class="prompt" id="prompt">
+  <h2 class="prompt-head" data-ui data-reveal>
+    <label class="sr-only" for="prompt-input"><span class="en">Name the ads you want in the app</span><span class="zh">写出应用里要放的广告</span></label>
+    <input id="prompt-input" type="text" autocomplete="off" spellcheck="false"
+      value="Banner, interstitial, rewarded"
+      placeholder="Banner, interstitial, rewarded"
+      data-en-placeholder="Banner, interstitial, rewarded"
+      data-zh-placeholder="横幅、插屏、激励视频">
+  </h2>
+  <div class="prompt-results" data-reveal style="--d:80ms">
+    <ul class="fmt" id="format-rows">
+      <li class="matched"><span class="fmt-name"><span class="en">Banner</span><span class="zh">横幅</span></span><span class="fmt-meta"><span class="en">Google test ad, Android and iOS</span><span class="zh">Google 测试广告，Android 和 iOS</span></span></li>
+      <li class="matched"><span class="fmt-name"><span class="en">Interstitial</span><span class="zh">插屏</span></span><span class="fmt-meta"><span class="en">Google test ad, Android and iOS</span><span class="zh">Google 测试广告，Android 和 iOS</span></span></li>
+      <li class="matched"><span class="fmt-name"><span class="en">Rewarded</span><span class="zh">激励视频</span></span><span class="fmt-meta"><span class="en">Google test ad, Android and iOS</span><span class="zh">Google 测试广告，Android 和 iOS</span></span></li>
+    </ul>
+    <div class="refills">
+      <button type="button" class="refill" data-refill-en="Banner, interstitial, rewarded" data-refill-zh="横幅、插屏、激励视频"><span class="en">Banner, interstitial, rewarded</span><span class="zh">横幅、插屏、激励视频</span></button>
+      <button type="button" class="refill" data-refill-en="Banner only" data-refill-zh="只要横幅"><span class="en">Banner only</span><span class="zh">只要横幅</span></button>
+      <button type="button" class="refill" data-refill-en="Rewarded video in a news app" data-refill-zh="新闻应用里的激励视频"><span class="en">Rewarded video in a news app</span><span class="zh">新闻应用里的激励视频</span></button>
+    </div>
+  </div>
+  <div class="shots" data-reveal style="--d:160ms">
+    <figure class="shot shot-drift">
+      <img src="media/ios-banner.png" alt="iOS banner test ad" data-zh-alt="iOS 横幅测试广告" width="1206" height="2622" fetchpriority="high">
+    </figure>
+    <figure class="shot">
+      <img src="media/ios-rewarded.png" alt="iOS rewarded test ad with the reward granted" data-zh-alt="iOS 激励视频测试广告，奖励已发放" width="1206" height="2622" loading="lazy">
+    </figure>
+    <figure class="shot">
+      <img src="media/android-banner.png" alt="Android banner test ad" data-zh-alt="Android 横幅测试广告" width="1080" height="2400" loading="lazy">
+    </figure>
+  </div>
+</section>
+
+<!-- Support -->
+<section class="support" id="support">
+  <h2 data-reveal><span class="en">What you get today</span><span class="zh">现在能接到什么</span></h2>
+  <div class="support-col">
+    <div data-reveal style="--d:80ms">
+      <p class="group"><span class="en">Written for you</span><span class="zh">替你写进工程</span></p>
+      <ul class="cover">
+        <li><span class="dot dot-accent" aria-hidden="true"></span><span class="cover-name"><span class="en">AdMob in a Flutter app, Android and iOS</span><span class="zh">Flutter 应用里的 AdMob，Android 和 iOS</span></span><span class="cover-level"><span class="en">written in</span><span class="zh">直接写入</span></span></li>
+        <li><span class="dot dot-accent" aria-hidden="true"></span><span class="cover-name"><span class="en">Banner, interstitial, rewarded video</span><span class="zh">横幅、插屏、激励视频</span></span><span class="cover-level"><span class="en">written in</span><span class="zh">直接写入</span></span></li>
+      </ul>
+    </div>
+    <div data-reveal style="--d:160ms">
+      <p class="group"><span class="en">Handed to the official skill</span><span class="zh">交给官方 Skill</span></p>
+      <ul class="cover">
+        <li><span class="dot" aria-hidden="true"></span><span class="cover-name"><span class="en">AdMob in native Android, iOS, or Unity</span><span class="zh">原生 Android、iOS 或 Unity 里的 AdMob</span></span><span class="cover-level"><span class="en">Google’s own skill</span><span class="zh">Google 自己的 Skill</span></span></li>
+        <li><span class="dot" aria-hidden="true"></span><span class="cover-name"><span class="en">LevelPlay in a Unity game</span><span class="zh">Unity 游戏里的 LevelPlay</span></span><span class="cover-level"><span class="en">Unity’s own skill</span><span class="zh">Unity 自己的 Skill</span></span></li>
+      </ul>
+    </div>
+    <div data-reveal style="--d:240ms">
+      <p class="group"><span class="en">Compared, not written in</span><span class="zh">能比较，先不写入</span></p>
+      <ul class="cover">
+        <li><span class="dot" aria-hidden="true"></span><span class="cover-name">AppLovin MAX</span><span class="cover-level"><span class="en">docs and comparison</span><span class="zh">文档和对比</span></span></li>
+        <li><span class="dot" aria-hidden="true"></span><span class="cover-name"><span class="en">LevelPlay in Flutter</span><span class="zh">Flutter 里的 LevelPlay</span></span><span class="cover-level"><span class="en">docs and comparison</span><span class="zh">文档和对比</span></span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <h2 data-reveal><span class="en">Before you hand it over</span><span class="zh">交给它之前</span></h2>
+  <div class="faq-col">
+    <details name="faq" data-reveal style="--d:0ms">
+      <summary><span class="en">If it compiles, will the ad show?</span><span class="zh">编译过了，广告就会出现吗？</span></summary>
+      <div class="faq-a">
+        <span class="en">No. A green build only means the SDK linked. A real test ad on a phone is a different check. Live ads still need your own AdMob account.</span>
+        <span class="zh">不会。编译通过只说明 SDK 已经链进去了。手机上能不能播出测试广告，是另一项检查。正式广告还是要用你自己的 AdMob 账号。</span>
+      </div>
+    </details>
+    <details name="faq" data-reveal style="--d:80ms">
+      <summary><span class="en">What if I do not have the Android SDK?</span><span class="zh">我还没装 Android SDK 怎么办？</span></summary>
+      <div class="faq-a">
+        <span class="en">The Android build is skipped, and the report says so. If iOS built, that layer can still pass. Android is not pretended to be done.</span>
+        <span class="zh">Android 构建会被跳过，报告里会写清楚。如果 iOS 编过了，这一层仍可通过。它不会假装 Android 已经验证完。</span>
+      </div>
+    </details>
+    <details name="faq" data-reveal style="--d:160ms">
+      <summary><span class="en">Will it wreck the app my agent already wrote?</span><span class="zh">会不会把 Agent 已经写好的应用改坏？</span></summary>
+      <div class="faq-a">
+        <span class="en">No. New files go under lib/ads. Existing settings are left alone. The few lines in main.dart sit between markers. If a file it needs still has uncommitted edits, it waits for you.</span>
+        <span class="zh">不会。新文件只放在 lib/ads。已有配置原样保留。main.dart 里那几行改动夹在标记中间。它要改的文件如果还有未提交的修改，会先停下来等你。</span>
+      </div>
+    </details>
+    <details name="faq" data-reveal style="--d:240ms">
+      <summary><span class="en">Why did rewarded video fail on Android in mainland China?</span><span class="zh">为什么激励视频在中国大陆的 Android 上播不出来？</span></summary>
+      <div class="faq-a">
+        <span class="en">Google served the test video from a CDN the Android ad view could not load. The same code played on iOS, and on Android through a proxy. The integration was fine. The network was not.</span>
+        <span class="zh">Google 把测试视频放到了 Android 广告视图加载不了的 CDN 上。同一套代码在 iOS 能播，Android 走代理也能播。接入没问题，是网络过不去。</span>
+      </div>
+    </details>
+    <details name="faq" data-reveal style="--d:320ms">
+      <summary><span class="en">Can it log into AdMob for me?</span><span class="zh">能替我登录 AdMob 吗？</span></summary>
+      <div class="faq-a">
+        <span class="en">No. You create the app, the ad units, and the privacy messages in AdMob. The tool never takes your password.</span>
+        <span class="zh">不能。应用、广告位和隐私消息都要你自己在 AdMob 后台建。它不会拿你的密码。</span>
+      </div>
+    </details>
+    <details name="faq" data-reveal style="--d:400ms">
+      <summary><span class="en">What about AppLovin MAX and LevelPlay?</span><span class="zh">AppLovin MAX 和 LevelPlay 呢？</span></summary>
+      <div class="faq-a">
+        <span class="en">You can compare them here. They are not written into the project yet. A Unity game using LevelPlay is sent to Unity’s own skill.</span>
+        <span class="zh">你可以在这里比较它们，但还不会写进工程。Unity 游戏要用 LevelPlay，会转给 Unity 自己的 Skill。</span>
+      </div>
+    </details>
+    <details name="faq" data-reveal style="--d:480ms">
+      <summary><span class="en">How do I swap the test ads for real ones?</span><span class="zh">测试广告怎么换成正式的？</span></summary>
+      <div class="faq-a">
+        <span class="en">Pass your live IDs at build time with --dart-define. You do not edit the source. If a test ID is still in the release, the check fails before you ship.</span>
+        <span class="zh">打包时用 --dart-define 传入正式 ID，不用改源码。正式包里如果还留着测试 ID，检查会在上线前拦住你。</span>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- Close -->
+<section class="close" id="close">
+  <p class="close-statement" data-reveal>
+    <span class="en">Ready to put ads in <input class="close-input" id="close-input" type="text" placeholder="your Flutter app" aria-label="Your app"></span>
+    <span class="zh">准备给 <input class="close-input" id="close-input-zh" type="text" placeholder="你的 Flutter 应用" aria-label="你的应用"> 接上广告</span>
+    <span class="close-line" data-reveal style="--d:80ms"><a class="button close-docs" href="docs.html"><span class="en">Start with the docs</span><span class="zh">从文档开始</span></a></span>
+  </p>
+  <p class="close-note" data-reveal style="--d:160ms">
+    <span class="en">That name stays on this page. Nothing is sent.</span>
+    <span class="zh">这个名字只留在这个页面上，不会发送出去。</span>
+  </p>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-row">
+    <div class="tile">
+      <p><span class="en">MIT licence. Test ads until you ship.</span><span class="zh">MIT 许可。上线前用的都是测试广告。</span></p>
+    </div>
+    <div class="tile">
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="docs.html"><span class="en">Docs</span><span class="zh">文档</span></a>
+        <a href="index.html#verify"><span class="en">See the check</span><span class="zh">看核对</span></a>
+        <a href="index.html#support"><span class="en">What it covers</span><span class="zh">覆盖什么</span></a>
+      </nav>
+    </div>
+    <div class="tile">
+      <p class="tile-label"><span class="en">Your time</span><span class="zh">你的时间</span></p>
+      <p class="tile-time" id="local-time"></p>
+    </div>
+    <a class="tile tile-link" href="docs.html">
+      <p><span class="en">Install it. Then tell your agent to use it.</span><span class="zh">先装上，再让你的 Agent 去用。</span></p>
+    </a>
+  </div>
+  <div class="footer-row footer-row-last">
+    <div class="tile tile-mark"><p>AI Ad Monetization</p></div>
+    <a class="tile tile-cta" href="docs.html"><p><span class="en">Give this to your agent</span><span class="zh">把这个交给 Agent</span></p></a>
+  </div>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>
