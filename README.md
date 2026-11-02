@@ -18,8 +18,8 @@
 本项目刻意只把一条链路做扎实。在 Flutter 3.47 新建工程上完成接入后：
 
 - `flutter analyze` 无问题，Android 与 iOS debug 构建都通过，静态校验 0 失败。
-- 在 iOS 模拟器上自动加载了横幅、插屏和激励三种 Google 测试广告，并触发了奖励回调。
-- Android 模拟器上横幅和插屏通过；激励视频因测试网络（中国大陆出口）无法下载素材，待换网络复测。
+- 在 iOS 和 Android 模拟器上都自动加载了横幅、插屏和激励三种 Google 测试广告，并触发了奖励回调。
+- 在中国大陆网络出口下，Android 激励视频的素材会被拦截而加载失败，换网络即可（见[故障排查](docs/troubleshooting.md)）。
 
 详见 [MVP 验收报告](docs/mvp-acceptance-report.md)。当前状态适合小规模公开试用。
 

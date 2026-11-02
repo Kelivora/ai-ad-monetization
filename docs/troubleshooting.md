@@ -55,7 +55,7 @@
 | `LoadAdError code 3`（NO_FILL） | 新广告单元未生效或应用未审核 | 新单元等待数小时；开发期使用测试 ID |
 | iOS 上 Banner 区域空白 | AdWidget 没有确定的宽高 | 使用生成的 `AnchoredBannerAd`，它已用固定尺寸容器包裹 |
 | `This AdWidget is already in the Widget tree` | 同一个广告对象被两个 AdWidget 使用 | 每个广告实例只对应一个 Widget |
-| Android 上横幅、插屏正常，激励视频一直加载失败（code 0），`adb logcat -s Ads` 里有 `asset.gvt1-cn.com ... blocked by CORS policy` | 网络环境问题：从中国大陆出口访问时，视频素材被分配到 `gvt1-cn.com` CDN，Android 广告 WebView 因缺少 CORS 头无法加载。同样的代码在 iOS 上可以正常加载 | 换到非中国大陆网络出口后重试；这不是接入代码的问题，也不影响面向海外用户的真实投放 |
+| Android 上横幅、插屏正常，激励视频一直加载失败（code 0），`adb logcat -s Ads` 里有 `asset.gvt1-cn.com ... blocked by CORS policy` | 网络环境问题：从中国大陆出口访问时，视频素材被分配到 `gvt1-cn.com` CDN，Android 广告 WebView 因缺少 CORS 头无法加载。同样的代码在 iOS 上可以正常加载 | 换到非中国大陆网络出口后重试。模拟器可以只让它自己走本机代理：`adb shell settings put global http_proxy 10.0.2.2:<端口>`，测完用 `adb shell settings put global http_proxy :0` 恢复。这不是接入代码的问题（验收时经代理复测 6/6 通过），也不影响面向海外用户的真实投放 |
 
 加载失败时，生成的控制器会打印 `ai-ad-monetization: <format> failed to load ... code=... domain=... message=...`，并可通过 `lastLoadError` 读取最近一次错误。查看 SDK 自身日志：Android 用 `adb logcat -s Ads`，iOS 用 Xcode 控制台。
 

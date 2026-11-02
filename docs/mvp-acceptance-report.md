@@ -2,7 +2,7 @@
 
 - 日期：2026-11-02（第二轮验收，覆盖 Android 构建与双平台运行时）
 - 范围：AdMob × Flutter（Android + iOS），Banner / Interstitial / Rewarded
-- 结论：**达到小规模公开试用标准。** 双平台构建通过；iOS 运行时全部通过；Android 运行时 6 项中 4 项通过，激励视频因测试网络环境无法加载素材，接入代码本身不是原因（见第 5 节）。
+- 结论：**达到小规模公开试用标准。** 双平台构建通过，双平台运行时冷烟测试均 6/6 通过。Android 激励视频在中国大陆网络出口下无法加载素材，改走代理后通过，确认是网络环境问题（见第 5 节）。
 
 ## 1. 验收环境
 
@@ -38,7 +38,7 @@
 | **Android debug 构建** | **通过**（`flutter build apk --debug`） |
 | iOS 模拟器构建 | 通过 |
 | **iOS 运行时冷烟测试** | **6 / 6 通过** |
-| **Android 运行时冷烟测试** | **4 / 6 通过**；激励视频加载失败（网络环境），奖励回调因此未测 |
+| **Android 运行时冷烟测试** | 直连中国大陆出口：4 / 6（激励视频素材被拦截）；**经代理：6 / 6 通过** |
 | “Test Ad” 标签目视核对 | 双平台横幅截图确认（见第 4 节） |
 | 生成内容语言 | 写入用户工程的代码和注释全部为英文 |
 
@@ -90,7 +90,23 @@ runtime: failed
 2. Android 上同一初始化流程下的横幅和插屏都能加载。
 3. 失败发生在素材下载阶段，请求本身已成功返回广告。
 
-验证工具如实把该设备判为 `failed`，没有当作跳过。它从新增的 `lastLoadError` 中读出错误码，并给出网络环境诊断。在非中国大陆网络下复测这一项，是正式发布前的待办。
+验证工具如实把该设备判为 `failed`，没有当作跳过。它从新增的 `lastLoadError` 中读出错误码，并给出网络环境诊断。
+
+**复测**：给 Android 模拟器设置全局代理（`adb shell settings put global http_proxy 10.0.2.2:<port>`），使其走非中国大陆出口，然后重跑：
+
+```
+$ node packages/mcp-server/dist/cli.js verify .tmp/e2e --levels runtime --devices emulator-5554 --show-fullscreen
+runtime: passed
+  passed  emulator-5554 [android-arm64] 32.0s
+    ✔ consent_eea 2169ms — status=required formAvailable=true
+    ✔ sdk_initialized 1148ms — AdsInitializer.initialize returned true
+    ✔ banner_loaded 2507ms — AdWidget rendered
+    ✔ interstitial_loaded 1293ms — interstitial ad ready
+    ✔ rewarded_loaded 1822ms — rewarded ad ready
+    ✔ rewarded_reward_callback 9820ms — onReward fired (reward: 10 coins)
+```
+
+接入代码没有任何改动，换网络后全部通过，证实了上面的判断。测试完成后已清除模拟器代理设置。
 
 ## 6. 本轮评审发现并已修复的问题
 
@@ -105,11 +121,10 @@ runtime: failed
 
 ## 7. 仍需人工确认的项
 
-1. 在非中国大陆网络下重跑 Android 冷烟测试，确认激励视频与奖励回调。
-2. 同意表单的界面交互，以及设置页的隐私选项入口（自动化只确认表单可用，没有点击）。
-3. 插屏频控在真实使用中的表现。
-4. 飞行模式下应用不崩溃、广告静默失败。
-5. 替换为真实 ID 后，在真机注册测试设备再验证。真实广告的填充和收益无法由工具验证。
+1. 同意表单的界面交互，以及设置页的隐私选项入口（自动化只确认表单可用，没有点击）。
+2. 插屏频控在真实使用中的表现。
+3. 飞行模式下应用不崩溃、广告静默失败。
+4. 替换为真实 ID 后，在真机注册测试设备再验证。真实广告的填充和收益无法由工具验证。
 
 ## 8. 已知限制
 
