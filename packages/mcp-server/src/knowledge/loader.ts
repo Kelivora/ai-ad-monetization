@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
@@ -194,6 +194,22 @@ export class KnowledgeBase {
       return entry;
     }
     throw new AppError('KNOWLEDGE_MISSING', `没有文档: ${platformId}/${framework}/${topic}`);
+  }
+
+  /** 列出平台可用文档 topic（docs/*.md 文件名，去掉框架前缀与扩展名）。 */
+  listDocTopics(platformId: PlatformId): string[] {
+    this.getPlatform(platformId);
+    const dir = join(this.dir, 'platforms', platformId, 'docs');
+    if (!existsSync(dir)) return [];
+    try {
+      return readdirSync(dir)
+        .filter((name) => name.endsWith('.md'))
+        .map((name) => name.replace(/\.md$/, '').replace(/^(flutter|android|ios|unity|react-native)-/, ''))
+        .filter((topic, index, all) => all.indexOf(topic) === index)
+        .sort();
+    } catch {
+      return [];
+    }
   }
 
   private require<T>(value: T | undefined, what: string): T {

@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "com.unity.mobile.ads": "1.0.0",
+    "com.unity.services.levelplay": "9.4.0"
+  }
+}
