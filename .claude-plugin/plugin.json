@@ -11,6 +11,9 @@
     "mcp",
     "mobile"
   ],
+  "author": {
+    "name": "AI Ad Monetization maintainers"
+  },
   "license": "MIT",
   "skills": "./skills",
   "mcpServers": "./.mcp.json"

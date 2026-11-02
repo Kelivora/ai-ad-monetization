@@ -5,9 +5,10 @@ import { validateAdConfig, type ValidationOutput } from '../validation/engine.js
 import { detectVerifyToolchain, defaultRunner } from './toolchain.js';
 import { runBuildLevel, type BuildLevelResult } from './build-runner.js';
 import { buildRuntimeChecklist, type RuntimeChecklist } from './runtime-checklist.js';
+import { runRuntimeLevel, type RuntimeLevelResult } from './runtime-runner.js';
 
 export const VERIFY_STATEMENT =
-  '构建成功不代表广告能真实投放：静态/构建级只证明配置与编译正确，广告请求、展示与回调必须按 runtime 清单在模拟器/真机上人工核对。';
+  '构建成功不代表广告能真实投放：静态/构建级只证明配置与编译正确，广告请求、展示与回调必须按 runtime 清单在模拟器/真机上人工核对；自动化运行时验证只证明测试广告能在所选设备上加载，真实广告单元 ID 的填充与收益无法由工具验证。';
 
 export type LevelStatus = 'passed' | 'failed' | 'skipped' | 'requires_manual_verification' | 'not_requested';
 
@@ -21,7 +22,7 @@ export interface VerifyData {
   levels: {
     static?: VerifyLevelStatic | undefined;
     build?: BuildLevelResult | undefined;
-    runtime?: RuntimeChecklist | undefined;
+    runtime?: RuntimeChecklist | RuntimeLevelResult | undefined;
   };
   verdict: { static: LevelStatus; build: LevelStatus; runtime: LevelStatus };
   statement: string;
@@ -34,6 +35,10 @@ export interface VerifyInput {
   markets?: string[] | undefined;
   profile?: 'development' | 'release' | undefined;
   timeoutSec?: number | undefined;
+  /** flutter 设备 id：提供时 runtime 级在指定设备上自动执行冷烟测试 */
+  devices?: string[] | undefined;
+  /** 冷烟测试中是否展示激励全屏广告并等待 onReward 回调 */
+  showFullscreen?: boolean | undefined;
   runner?: typeof defaultRunner | undefined; // 测试注入
 }
 
@@ -91,8 +96,24 @@ export async function verifyAdIntegration(input: VerifyInput): Promise<VerifyRes
   }
 
   if (requested.has('runtime')) {
-    levels.runtime = buildRuntimeChecklist();
-    verdict.runtime = 'requires_manual_verification';
+    if (!input.devices || input.devices.length === 0) {
+      // 未给 devices：行为不变，返回人工核对清单
+      levels.runtime = buildRuntimeChecklist();
+      verdict.runtime = 'requires_manual_verification';
+    } else {
+      const runtime = await runRuntimeLevel({
+        cwd: analysis.root,
+        devices: input.devices,
+        showFullscreen: input.showFullscreen,
+        targets: { android: targets.includes('android'), ios: targets.includes('ios') },
+        runner: input.runner ?? defaultRunner,
+        timeoutMs: (input.timeoutSec ?? 900) * 1000,
+        kb,
+      });
+      levels.runtime = runtime;
+      verdict.runtime = runtime.status;
+      warnings.push(...runtime.warnings.map((w) => `[runtime] ${w}`));
+    }
   }
 
   const parts: string[] = [];
@@ -103,7 +124,20 @@ export async function verifyAdIntegration(input: VerifyInput): Promise<VerifyRes
   const nextSteps: string[] = [];
   if (verdict.build === 'skipped') nextSteps.push('build 级 skipped：安装缺失的工具链后重跑');
   if (verdict.build === 'failed') nextSteps.push('按各失败步骤的 diagnosis 修复构建问题后重跑 verify');
-  if (levels.runtime) nextSteps.push(`按 runtime 清单人工核对（推荐命令: ${levels.runtime.recommendedCommand}）`);
+  if (verdict.runtime === 'requires_manual_verification') {
+    const checklist = levels.runtime as RuntimeChecklist;
+    nextSteps.push(`按 runtime 清单人工核对（推荐命令: ${checklist.recommendedCommand}）`);
+    nextSteps.push('提示：verify_ad_integration 传 devices（flutter 设备 id）可在指定设备上自动执行冷烟测试 integration_test/ads_smoke_test.dart');
+  } else if (verdict.runtime === 'skipped' && levels.runtime && 'reason' in levels.runtime) {
+    const runtime = levels.runtime as RuntimeLevelResult;
+    nextSteps.push(runtime.reason ?? 'runtime 级 skipped');
+  } else if (verdict.runtime === 'failed') {
+    nextSteps.push('查看 runtime 级各设备 run 的失败检查与 logTail，修复后重跑 verify（真机 EEA 检查需传测试设备 ID）');
+  }
+  if (levels.runtime && 'manualItems' in levels.runtime && (levels.runtime as RuntimeLevelResult).manualItems.length > 0) {
+    const items = (levels.runtime as RuntimeLevelResult).manualItems;
+    nextSteps.push(`仍需人工核对（未被自动化覆盖）: ${items.map((i) => i.title).join('；')}`);
+  }
 
   return { levels, verdict, statement: VERIFY_STATEMENT, warnings, nextSteps };
 }

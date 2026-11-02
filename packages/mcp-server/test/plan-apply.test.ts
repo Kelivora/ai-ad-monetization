@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateIntegration } from '../src/core/integration/generate.js';
+import { renderAdsSmokeTest } from '../src/adapters/admob/flutter/templates/smoke-test.js';
 import { AppError } from '../src/lib/errors.js';
 
 const fixtures = (name: string) => join(fileURLToPath(new URL('.', import.meta.url)), 'fixtures', name);
@@ -220,7 +221,10 @@ describe('generateIntegration（已有 AdMob 的工程）', () => {
       expect(manifest.reason).toContain('已有 AdMob APPLICATION_ID');
 
       const pubspec = result.plan.changes.find((c) => c.path === 'pubspec.yaml')!;
-      expect(pubspec.action).toBe('skip');
+      // 已有 google_mobile_ads 不动；modify 只为追加冷烟测试的 integration_test dev 依赖
+      expect(pubspec.action).toBe('modify');
+      expect(pubspec.diff).toContain('+  integration_test:');
+      expect(pubspec.diff).not.toContain('+  google_mobile_ads:');
       expect(result.warnings.join('\n')).toContain('低于 9.x');
 
       const mainChange = result.plan.changes.find((c) => c.path === 'lib/main.dart');
@@ -283,6 +287,26 @@ describe('生成的 Dart 代码', () => {
     const content = result.plan.changes.find((c) => c.path === 'lib/ads/ads_initializer.dart')!.content ?? '';
     expect(content).toContain('tagForChildDirectedTreatment');
   });
+
+  it('控制器加载/展示失败时打印错误码并暴露 lastLoadError；banner 支持 onAdFailedToLoad', async () => {
+    const result = await generateIntegration({ projectPath: basic, formats: [...FORMATS], mode: 'plan' });
+    const content = (path: string) => result.plan.changes.find((c) => c.path === path)!.content ?? '';
+    for (const [path, format] of [
+      ['lib/ads/interstitial_ad_controller.dart', 'interstitial'],
+      ['lib/ads/rewarded_ad_controller.dart', 'rewarded'],
+    ] as const) {
+      expect(content(path)).toContain('LoadAdError? get lastLoadError');
+      expect(content(path)).toContain(`ai-ad-monetization: ${format} failed to load`);
+      expect(content(path)).toContain('(attempt \${_retryCount + 1})');
+      expect(content(path)).toContain('code=\${error.code} domain=\${error.domain}');
+      expect(content(path)).toContain(`ai-ad-monetization: ${format} failed to show`);
+      expect(content(path)).toContain('_lastLoadError = null;');
+    }
+    const banner = content('lib/ads/anchored_banner_ad.dart');
+    expect(banner).toContain('final void Function(LoadAdError error)? onAdFailedToLoad;');
+    expect(banner).toContain('ai-ad-monetization: banner failed to load');
+    expect(banner).toContain('widget.onAdFailedToLoad?.call(error)');
+  });
 });
 
 describe('lib/ads 同名文件已存在', () => {
@@ -296,6 +320,107 @@ describe('lib/ads 同名文件已存在', () => {
       expect(change.action).toBe('skip');
       // spawnSync 引用保持（避免未用告警）
       void spawnSync;
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('冷烟测试（includeSmokeTest，默认 true）', () => {
+  let basic: string;
+  beforeAll(() => {
+    basic = copyFixture('flutter_basic');
+  });
+  afterAll(() => {
+    rmSync(basic, { recursive: true, force: true });
+  });
+
+  it('plan 默认包含冷烟测试文件与 integration_test dev 依赖', async () => {
+    const result = await generateIntegration({ projectPath: basic, formats: [...FORMATS], mode: 'plan' });
+    const smoke = result.plan.changes.find((c) => c.path === 'integration_test/ads_smoke_test.dart')!;
+    expect(smoke.action).toBe('create');
+    // plan 输出的 content 会截断到 4000 字符，这里只断言文件头部分
+    expect(smoke.content).toContain("import 'package:demo_news_app/ads/ads.dart';");
+    expect(smoke.content).toContain('AI_AD_SMOKE');
+    expect(smoke.content).toContain('flutter test integration_test/ads_smoke_test.dart -d <device>');
+    // pubspec 追加 integration_test dev 依赖
+    const pubspec = result.plan.changes.find((c) => c.path === 'pubspec.yaml')!;
+    expect(pubspec.diff).toContain('+  integration_test:');
+    expect(pubspec.diff).toContain('+    sdk: flutter');
+    // manualSteps 说明冷烟测试用途与命令
+    expect(result.plan.manualSteps.join('\n')).toContain('ads_smoke_test.dart');
+  });
+
+  it('模板：全格式包含各项检查、全英文、banner-only 无 interstitial/rewarded 检查', () => {
+    const full = renderAdsSmokeTest({ packageName: 'demo_news_app', formats: [...FORMATS] });
+    expect(full).toContain("'consent_eea'");
+    expect(full).toContain("'banner_loaded'");
+    expect(full).toContain("'interstitial_loaded'");
+    expect(full).toContain("'rewarded_loaded'");
+    expect(full).toContain("'rewarded_reward_callback'");
+    expect(full).toContain('ADS_SMOKE_TEST_DEVICE_ID');
+    expect(full).toContain('ADS_SMOKE_SHOW_FULLSCREEN');
+    // 全屏期间禁止 tester.pump：rewarded show 之后只用 Future.delayed 轮询
+    expect(full).toContain('_delayUntil');
+    // *_loaded 失败 detail 携带 lastLoadError 的 code/domain/message
+    expect(full).toContain('_loadErrorDetail');
+    expect(full).toContain('no load error reported (still loading or timed out)');
+    // 内容全英文（无中文字符）
+    expect(full).not.toMatch(/[一-鿿]/);
+
+    const bannerOnly = renderAdsSmokeTest({ packageName: 'demo_news_app', formats: ['banner'] });
+    expect(bannerOnly).toContain("'banner_loaded'");
+    expect(bannerOnly).not.toContain("'interstitial_loaded'");
+    expect(bannerOnly).not.toContain("'rewarded_loaded'");
+    expect(bannerOnly).not.toContain("'rewarded_reward_callback'");
+    expect(bannerOnly).not.toContain('InterstitialAdController');
+    expect(bannerOnly).not.toContain('RewardedAdController');
+  });
+
+  it('已存在时 skip，绝不覆盖', async () => {
+    mkdirSync(join(basic, 'integration_test'), { recursive: true });
+    writeFileSync(join(basic, 'integration_test/ads_smoke_test.dart'), '// user smoke test\n', 'utf8');
+    const result = await generateIntegration({ projectPath: basic, formats: [...FORMATS], mode: 'plan' });
+    const smoke = result.plan.changes.find((c) => c.path === 'integration_test/ads_smoke_test.dart')!;
+    expect(smoke.action).toBe('skip');
+    expect(smoke.reason).toContain('已存在');
+  });
+
+  it('includeSmokeTest=false → 不含冷烟测试文件，pubspec 不加 integration_test', async () => {
+    const root = copyFixture('flutter_basic');
+    try {
+      const result = await generateIntegration({
+        projectPath: root,
+        formats: [...FORMATS],
+        mode: 'plan',
+        platformOptions: { includeSmokeTest: false },
+      });
+      expect(result.plan.changes.map((c) => c.path)).not.toContain('integration_test/ads_smoke_test.dart');
+      const pubspec = result.plan.changes.find((c) => c.path === 'pubspec.yaml')!;
+      expect(pubspec.diff ?? '').not.toContain('integration_test');
+      expect(result.plan.manualSteps.join('\n')).not.toContain('冷烟测试已生成');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('formats 只有 banner → 生成的冷烟测试只含 banner 检查', async () => {
+    const root = copyFixture('flutter_basic');
+    try {
+      const plan = await generateIntegration({ projectPath: root, formats: ['banner'], mode: 'plan' });
+      const applied = await generateIntegration({
+        projectPath: root,
+        formats: ['banner'],
+        mode: 'apply',
+        confirm: true,
+        expectedPlanHash: plan.plan.planHash,
+      });
+      void applied;
+      const content = readFileSync(join(root, 'integration_test/ads_smoke_test.dart'), 'utf8');
+      expect(content).toContain("'banner_loaded'");
+      expect(content).not.toContain("'interstitial_loaded'");
+      expect(content).not.toContain("'rewarded_loaded'");
+      expect(content).not.toContain("'rewarded_reward_callback'");
     } finally {
       rmSync(root, { recursive: true, force: true });
     }

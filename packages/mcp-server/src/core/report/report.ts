@@ -102,6 +102,48 @@ function renderVerification(verification: unknown): string[] {
         lines.push(`  - 待人工核对: ${String(item['title'])}`);
       }
     }
+    if (key === 'runtime' && Array.isArray(level['runs'])) {
+      // 自动化冷烟测试：逐设备渲染 checks 与剩余人工项
+      const runs = level['runs'] as Array<Record<string, unknown>>;
+      if (runs.length === 0) {
+        const reason = level['reason'] ? `（${String(level['reason'])}）` : '';
+        lines.push(`  - 未在任何设备上执行${reason}`);
+      }
+      for (const run of runs) {
+        const reason = run['reason'] ? `（${String(run['reason'])}）` : '';
+        const platform = run['targetPlatform'] ? `，平台 ${String(run['targetPlatform'])}` : '';
+        lines.push(`  - 设备 \`${String(run['device'])}\`${platform}: **${String(run['status'])}**${reason}`);
+        const checks = Array.isArray(run['checks']) ? (run['checks'] as Array<Record<string, unknown>>) : [];
+        if (checks.length > 0) {
+          lines.push('    | 检查 | 结果 | 耗时 | 说明 |');
+          lines.push('    | --- | --- | --- | --- |');
+          for (const check of checks) {
+            const ms = check['ms'] !== undefined ? `${String(check['ms'])}ms` : '—';
+            const detail = String(check['detail'] ?? '—');
+            if (check['skipped'] === true) {
+              lines.push(`    | ${String(check['check'])} | 跳过 | — | ${detail} |`);
+            } else {
+              const mark = check['ok'] === true ? '✔' : '✘';
+              lines.push(`    | ${String(check['check'])} | ${mark} ${String(check['ok'])} | ${ms} | ${detail} |`);
+            }
+          }
+        }
+        const diagnosis = Array.isArray(run['diagnosis']) ? (run['diagnosis'] as Array<Record<string, unknown>>) : [];
+        for (const diag of diagnosis) {
+          const code = diag['code'] !== undefined ? `（code=${String(diag['code'])}${diag['domain'] ? `, domain=${String(diag['domain'])}` : ''}）` : '';
+          lines.push(
+            `    - 诊断 \`${String(diag['check'])}\`${code}: ${String(diag['cause'])}；建议: ${String(diag['fix'])}（平台日志: \`${String(diag['logCommand'] ?? '—')}\`）`,
+          );
+        }
+      }
+      const manualItems = Array.isArray(level['manualItems']) ? (level['manualItems'] as Array<Record<string, unknown>>) : [];
+      if (manualItems.length > 0) {
+        lines.push(`  - 仍需人工核对（未被自动化覆盖，共 ${manualItems.length} 项）:`);
+        for (const item of manualItems) lines.push(`    - ${String(item['title'])}`);
+      } else {
+        lines.push('  - 剩余人工核对项: 无（全部由自动化覆盖）');
+      }
+    }
   }
   return lines;
 }

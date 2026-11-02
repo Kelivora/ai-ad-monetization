@@ -25,6 +25,7 @@ import {
   renderInterstitialAdController,
   renderRewardedAdController,
 } from './templates/ads_widgets.js';
+import { renderAdsSmokeTest } from './templates/smoke-test.js';
 
 /** 生成器支持的格式子集（MVP）。 */
 export const GENERATABLE_FORMATS: readonly AdFormat[] = ['banner', 'interstitial', 'rewarded'];
@@ -135,9 +136,12 @@ export function planFlutterIntegration(
     changes.push(change);
   };
 
-  // 1. pubspec.yaml
+  const includeSmokeTest = input.options?.['includeSmokeTest'] !== false;
+  const packageName = analysis.appName;
+
+  // 1. pubspec.yaml（主依赖 + 冷烟测试的 integration_test dev 依赖，串行两次文本级 patch）
   pushPatch('pubspec.yaml', (text) => {
-    const result = patchPubspec(text, { dependency: sdk.plugin.name, version: versionConstraint });
+    let result = patchPubspec(text, { dependency: sdk.plugin.name, version: versionConstraint });
     if (result.action === 'skip') {
       const existing = new RegExp(`${sdk.plugin.name}\\s*:\\s*(\\S+)`).exec(text)?.[1];
       if (existing) {
@@ -145,6 +149,22 @@ export function planFlutterIntegration(
         if (major !== undefined && major < 9) {
           warnings.push(`已有 google_mobile_ads ${existing} 低于 9.x，建议升级到 ${versionConstraint}（工具不自动改已有约束）。`);
         }
+      }
+    }
+    if (includeSmokeTest) {
+      const devDep = patchPubspec(result.newText, {
+        dependency: 'integration_test',
+        section: 'dev_dependencies',
+        insertLines: ['  integration_test:', '    sdk: flutter'],
+      });
+      if (devDep.action === 'modify') {
+        result = {
+          action: 'modify',
+          newText: devDep.newText,
+          reason: result.action === 'modify'
+            ? `${result.reason}；${devDep.reason}`
+            : devDep.reason,
+        };
       }
     }
     return result;
@@ -221,6 +241,25 @@ export function planFlutterIntegration(
       changes.push({ path: rel, action: 'skip', reason: `${rel} 已存在，不覆盖`, beforeHash: sha256(existing) });
     } else {
       changes.push({ path: rel, action: 'create', reason: `生成 ${rel}`, content });
+    }
+  }
+
+  // 8. integration_test/ads_smoke_test.dart（冷烟测试；同名已存在 → skip，绝不覆盖）
+  if (includeSmokeTest) {
+    const rel = 'integration_test/ads_smoke_test.dart';
+    if (packageName) {
+      const content = renderAdsSmokeTest({ packageName, formats });
+      const existing = readTextIfExists(join(root, rel));
+      if (existing !== undefined) {
+        changes.push({ path: rel, action: 'skip', reason: `${rel} 已存在，不覆盖`, beforeHash: sha256(existing) });
+      } else {
+        changes.push({ path: rel, action: 'create', reason: `生成冷烟测试 ${rel}`, content });
+      }
+      manualSteps.push(
+        `冷烟测试已生成（integration_test/ads_smoke_test.dart）：用测试 ID 在已启动的模拟器/真机上加载真实测试广告（需网络），命令 \`flutter test integration_test/ads_smoke_test.dart -d <device>\`；真机 EEA 检查需加 --dart-define=ADS_SMOKE_TEST_DEVICE_ID=<测试设备ID>，验证激励回调需加 --dart-define=ADS_SMOKE_SHOW_FULLSCREEN=true。`,
+      );
+    } else {
+      warnings.push('未能从 pubspec.yaml 解析出包名，跳过冷烟测试生成。');
     }
   }
 

@@ -95,7 +95,10 @@ class _AdsDemoPageState extends State<AdsDemoPage> {
 }
 DART
 
-# verify 内部依次执行：static（规则校验）→ pub get / analyze / build apk / build ios → runtime 人工清单。
+# verify 内部依次执行：static（规则校验）→ pub get / analyze / build apk / build ios → runtime。
+# runtime：冷烟测试文件由 plan/apply 生成（本脚本不再手动添加 integration_test）；
+# 设置 E2E_DEVICES=<id1,id2> 时在指定设备上自动执行冷烟测试，E2E_SHOW_FULLSCREEN=1 时
+# 额外验证激励回调（需要人工关闭全屏广告）。脚本不负责启动模拟器。
 # ios/all 不限定 targets：无 Java/Android SDK 的机器上 android 步骤会 skipped 并写明原因（不算失败）。
 VERIFY_TARGETS=""
 case "$TARGET" in
@@ -104,9 +107,17 @@ case "$TARGET" in
   *) echo "未知目标: $TARGET（可选 ios|android|all）"; exit 2 ;;
 esac
 
-echo "==> [3/7] cli verify（static + build + runtime 清单，结果另存 JSON）"
+VERIFY_FLAGS=""
+if [ -n "${E2E_DEVICES:-}" ]; then
+  VERIFY_FLAGS="$VERIFY_FLAGS --devices $E2E_DEVICES"
+fi
+if [ "${E2E_SHOW_FULLSCREEN:-0}" = "1" ]; then
+  VERIFY_FLAGS="$VERIFY_FLAGS --show-fullscreen"
+fi
+
+echo "==> [3/7] cli verify（static + build + runtime，结果另存 JSON）"
 set +e
-node "$CLI" verify "$E2E_DIR" --levels static,build,runtime --json-out "$VERIFY_JSON" $VERIFY_TARGETS
+node "$CLI" verify "$E2E_DIR" --levels static,build,runtime --json-out "$VERIFY_JSON" $VERIFY_TARGETS $VERIFY_FLAGS
 VERIFY=$?
 set -e
 # 退出码：1 = static/build failed（真实失败）；3 = 全部 skipped（可接受的工具链缺失）；0 = 通过

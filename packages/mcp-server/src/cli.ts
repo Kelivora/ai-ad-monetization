@@ -27,7 +27,7 @@ const USAGE = `ad-monetization — AI Ad Monetization CLI (MVP: AdMob x Flutter)
   ad-monetization plan <path> --formats banner,interstitial,rewarded [--no-wire-main] [--child-directed] [--platform-options-json '{"interstitialMinIntervalSeconds":60}']
   ad-monetization apply <path> --formats ... --yes [--allow-dirty] [--no-wire-main] [--child-directed]
   ad-monetization validate <path> [--profile development|release] [--markets US,EEA] [--child-directed]
-  ad-monetization verify <path> [--levels static,build,runtime] [--targets ios,android] [--profile development] [--markets US,EEA] [--timeout-sec 900] [--json-out file.json]
+  ad-monetization verify <path> [--levels static,build,runtime] [--targets ios,android] [--profile development] [--markets US,EEA] [--timeout-sec 900] [--devices id1,id2] [--show-fullscreen] [--json-out file.json]
   ad-monetization report <path> [--out file.md] [--verification-file file.json]
   ad-monetization revenue --file <csv|json> --start 2026-01-01 --end 2026-01-31
   ad-monetization revenue --api --publisher pub-xxxxxxxxxxxxxxxx --start 2026-01-01 --end 2026-01-31 [--dimensions DATE,COUNTRY,FORMAT]
@@ -64,6 +64,8 @@ interface CliArgs {
   timeoutSec?: number | undefined;
   jsonOut?: string | undefined;
   verificationFile?: string | undefined;
+  devices?: string[] | undefined;
+  showFullscreen?: boolean | undefined;
 }
 
 function csvOption(name: string, value: string | undefined): string[] | undefined {
@@ -131,6 +133,10 @@ function parseArgs(argv: string[]): CliArgs {
       const value = Number(next(a));
       if (!Number.isInteger(value) || value <= 0) throw new AppError('INVALID_INPUT', '--timeout-sec 需要正整数');
       args.timeoutSec = value;
+    } else if (a === '--devices') {
+      args.devices = csvOption('--devices', next(a));
+    } else if (a === '--show-fullscreen') {
+      args.showFullscreen = true;
     } else if (a === '--platform-options-json') {
       const value = next(a);
       try {
@@ -244,6 +250,8 @@ async function callVerifyTool(path: string, args: CliArgs): Promise<VerifyEnvelo
     markets: args.markets,
     profile: args.profile,
     timeoutSec: args.timeoutSec,
+    devices: args.devices,
+    showFullscreen: args.showFullscreen,
   });
   return {
     ok: true,
@@ -275,8 +283,38 @@ function printVerify(result: VerifyEnvelope, args: CliArgs): number {
     }
   }
   if (levels.runtime) {
-    out.push(`runtime: ${verdict.runtime}（${levels.runtime.items.length} 项人工核对清单；推荐命令: ${levels.runtime.recommendedCommand}）`);
-    for (const item of levels.runtime.items) out.push(`  - ${item.title}`);
+    if ('items' in levels.runtime) {
+      const checklist = levels.runtime;
+      out.push(`runtime: ${verdict.runtime}（${checklist.items.length} 项人工核对清单；推荐命令: ${checklist.recommendedCommand}）`);
+      for (const item of checklist.items) out.push(`  - ${item.title}`);
+    } else {
+      const runtime = levels.runtime;
+      const reason = runtime.reason ? `（${runtime.reason}）` : '';
+      out.push(`runtime: ${verdict.runtime}${reason} 冷烟测试: ${runtime.smokeTestFile}`);
+      for (const run of runtime.runs) {
+        const secs = run.durationMs !== undefined ? ` ${(run.durationMs / 1000).toFixed(1)}s` : '';
+        const platform = run.targetPlatform ? ` [${run.targetPlatform}]` : '';
+        const runReason = run.reason ? ` — ${run.reason}` : '';
+        out.push(`  ${run.status.padEnd(7)} ${run.device}${platform}${secs}${runReason}`);
+        for (const check of run.checks) {
+          const ms = check.ms !== undefined ? ` ${check.ms}ms` : '';
+          const detail = check.detail ? ` — ${check.detail}` : '';
+          if (check.skipped) {
+            out.push(`    · 跳过 ${check.check}${detail}`);
+          } else {
+            out.push(`    ${check.ok ? '✔' : '✘'} ${check.check}${ms}${detail}`);
+          }
+        }
+        for (const diag of run.diagnosis ?? []) {
+          const code = diag.code !== undefined ? `[code=${diag.code}] ` : '';
+          out.push(`    ? 诊断 ${diag.check}${code}: ${diag.cause} → ${diag.fix}（日志: ${diag.logCommand ?? '—'}）`);
+        }
+      }
+      if (runtime.manualItems.length > 0) {
+        out.push(`  仍需人工核对（未被自动化覆盖）:`);
+        for (const item of runtime.manualItems) out.push(`  - ${item.title}`);
+      }
+    }
   }
   out.push('', result.data.statement);
   if (result.warnings.length > 0) out.push('', '警告:', ...result.warnings.map((w) => `  ! ${w}`));

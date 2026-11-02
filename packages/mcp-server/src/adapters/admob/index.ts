@@ -16,6 +16,7 @@ export class AdMobAdapter implements PlatformAdapter {
   readonly optionsSchema = z.object({
     useNextGenSdk: z.boolean().default(false),
     interstitialMinIntervalSeconds: z.number().int().min(0).default(180),
+    includeSmokeTest: z.boolean().default(true),
   });
 
   private readonly kb: KnowledgeBase;

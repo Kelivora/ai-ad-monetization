@@ -66,6 +66,55 @@ describe('patchPubspec', () => {
   });
 });
 
+describe('patchPubspec（dev_dependencies / sdk 依赖）', () => {
+  const integrationTestLines = ['  integration_test:', '    sdk: flutter'];
+
+  it('已有 dev_dependencies 块 → 在块末尾追加 sdk 依赖写法', () => {
+    const result = patchPubspec(flutterBasicPubspec, {
+      dependency: 'integration_test',
+      section: 'dev_dependencies',
+      insertLines: integrationTestLines,
+    });
+    expect(result.action).toBe('modify');
+    expect(result.newText).toContain('  flutter_lints: ^6.0.0\n  integration_test:\n    sdk: flutter');
+  });
+
+  it('没有 dev_dependencies 段 → 紧跟 dependencies 块之后新建', () => {
+    const noDevDeps = flutterBasicPubspec.replace(
+      /dev_dependencies:[\s\S]*?flutter_lints: \^\d+\.\d+\.\d+/,
+      '',
+    );
+    const result = patchPubspec(noDevDeps, {
+      dependency: 'integration_test',
+      section: 'dev_dependencies',
+      insertLines: integrationTestLines,
+    });
+    expect(result.action).toBe('modify');
+    expect(result.newText).toContain('dev_dependencies:\n  integration_test:\n    sdk: flutter');
+    // 幂等：再跑一次 skip
+    const twice = patchPubspec(result.newText, {
+      dependency: 'integration_test',
+      section: 'dev_dependencies',
+      insertLines: integrationTestLines,
+    });
+    expect(twice.action).toBe('skip');
+  });
+
+  it('已有 integration_test（sdk: flutter 多行写法）→ skip 不覆盖', () => {
+    const existing = flutterBasicPubspec.replace(
+      '  flutter_lints: ^6.0.0',
+      '  flutter_lints: ^6.0.0\n  integration_test:\n    sdk: flutter',
+    );
+    const result = patchPubspec(existing, {
+      dependency: 'integration_test',
+      section: 'dev_dependencies',
+      insertLines: integrationTestLines,
+    });
+    expect(result.action).toBe('skip');
+    expect(result.newText).toBe(existing);
+  });
+});
+
 describe('patchAndroidManifest', () => {
   const manifest = `<?xml version="1.0"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">

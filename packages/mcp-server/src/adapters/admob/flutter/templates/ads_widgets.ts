@@ -12,13 +12,17 @@ import 'ads_initializer.dart';
 /// Bottom-anchored adaptive banner (large anchored adaptive banner).
 ///
 /// - Renders nothing (\`SizedBox.shrink\`) until loaded, so layout does not jump;
-/// - Fails silently when initialization or ad loading fails;
+/// - Fails silently when initialization or ad loading fails (errors are
+///   printed to the log and forwarded to [onAdFailedToLoad]);
 /// - Releases ad resources when the State is disposed.
 class AnchoredBannerAd extends StatefulWidget {
-  const AnchoredBannerAd({super.key, this.adUnitId});
+  const AnchoredBannerAd({super.key, this.adUnitId, this.onAdFailedToLoad});
 
   /// Overrides the ad unit ID (defaults to [AdUnitIds.banner]).
   final String? adUnitId;
+
+  /// Called when the banner fails to load (for logging / retry UX).
+  final void Function(LoadAdError error)? onAdFailedToLoad;
 
   @override
   State<AnchoredBannerAd> createState() => _AnchoredBannerAdState();
@@ -69,6 +73,12 @@ class _AnchoredBannerAdState extends State<AnchoredBannerAd> {
         },
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
           ad.dispose();
+          debugPrint(
+            'ai-ad-monetization: banner failed to load: '
+            'code=\${error.code} domain=\${error.domain} '
+            'message=\${error.message}',
+          );
+          widget.onAdFailedToLoad?.call(error);
           if (mounted) {
             setState(() {
               _bannerAd = null;
@@ -111,6 +121,7 @@ class _AnchoredBannerAdState extends State<AnchoredBannerAd> {
 export function renderInterstitialAdController(opts: TemplateOptions): string {
   return `${fileHeader(opts)}
 
+import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ad_unit_ids.dart';
@@ -144,9 +155,13 @@ class InterstitialAdController {
   bool _loading = false;
   bool _disposed = false;
   int _retryCount = 0;
+  LoadAdError? _lastLoadError;
 
   /// Whether a loaded interstitial is ready to show.
   bool get isReady => _ad != null;
+
+  /// The most recent load error (null after a successful load).
+  LoadAdError? get lastLoadError => _lastLoadError;
 
   /// Preloads an interstitial (idempotent; no-op when loading or loaded).
   Future<void> load() async {
@@ -169,12 +184,18 @@ class InterstitialAdController {
           }
           _retryCount = 0;
           _loading = false;
+          _lastLoadError = null;
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (Ad dismissedAd) {
               dismissedAd.dispose();
               _reload();
             },
             onAdFailedToShowFullScreenContent: (Ad ad, AdError error) {
+              debugPrint(
+                'ai-ad-monetization: interstitial failed to show: '
+                'code=\${error.code} domain=\${error.domain} '
+                'message=\${error.message}',
+              );
               ad.dispose();
               _reload();
             },
@@ -183,6 +204,12 @@ class InterstitialAdController {
         },
         onAdFailedToLoad: (LoadAdError error) {
           if (_disposed) return;
+          _lastLoadError = error;
+          debugPrint(
+            'ai-ad-monetization: interstitial failed to load '
+            '(attempt \${_retryCount + 1}): code=\${error.code} '
+            'domain=\${error.domain} message=\${error.message}',
+          );
           _loading = false;
           _retryWithBackoff();
         },
@@ -269,6 +296,10 @@ class RewardedAdController {
   bool _loading = false;
   bool _disposed = false;
   int _retryCount = 0;
+  LoadAdError? _lastLoadError;
+
+  /// The most recent load error (null after a successful load).
+  LoadAdError? get lastLoadError => _lastLoadError;
 
   /// Preloads a rewarded ad (idempotent).
   Future<void> load() async {
@@ -291,12 +322,18 @@ class RewardedAdController {
           }
           _retryCount = 0;
           _loading = false;
+          _lastLoadError = null;
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (Ad dismissedAd) {
               dismissedAd.dispose();
               _reload();
             },
             onAdFailedToShowFullScreenContent: (Ad ad, AdError error) {
+              debugPrint(
+                'ai-ad-monetization: rewarded failed to show: '
+                'code=\${error.code} domain=\${error.domain} '
+                'message=\${error.message}',
+              );
               ad.dispose();
               _reload();
             },
@@ -306,6 +343,12 @@ class RewardedAdController {
         },
         onAdFailedToLoad: (LoadAdError error) {
           if (_disposed) return;
+          _lastLoadError = error;
+          debugPrint(
+            'ai-ad-monetization: rewarded failed to load '
+            '(attempt \${_retryCount + 1}): code=\${error.code} '
+            'domain=\${error.domain} message=\${error.message}',
+          );
           _loading = false;
           _retryWithBackoff();
         },
