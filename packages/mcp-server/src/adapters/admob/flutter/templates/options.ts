@@ -31,14 +31,14 @@ export function renderAdUnitIds(opts: TemplateOptions): string {
 
 import 'dart:io';
 
-/// 广告单元 ID。
+/// Ad unit IDs.
 ///
-/// 默认是 Google 公开的测试 ID（不会产生真实收益）；发布前用
-/// \`--dart-define=ADMOB_ANDROID_BANNER_ID=ca-app-pub-xxx/yyy\` 之类的参数覆盖。
+/// Defaults are Google's public test IDs (no real revenue). Override before
+/// release with \`--dart-define=ADMOB_ANDROID_BANNER_ID=ca-app-pub-xxx/yyy\`.
 class AdUnitIds {
   AdUnitIds._();
 
-  /// Google 测试 ID 的发布者前缀。
+  /// Publisher prefix of Google test IDs.
   static const String testPublisherPrefix = '${opts.testIds.prefix}';
 
   static const String androidBannerId = String.fromEnvironment(
@@ -71,17 +71,17 @@ class AdUnitIds {
     defaultValue: '${rewardedIos}',
   );
 
-  /// 当前平台的横幅广告单元 ID。
+  /// Banner ad unit ID for the current platform.
   static String get banner => Platform.isIOS ? iosBannerId : androidBannerId;
 
-  /// 当前平台的插屏广告单元 ID。
+  /// Interstitial ad unit ID for the current platform.
   static String get interstitial =>
       Platform.isIOS ? iosInterstitialId : androidInterstitialId;
 
-  /// 当前平台的激励视频广告单元 ID。
+  /// Rewarded ad unit ID for the current platform.
   static String get rewarded => Platform.isIOS ? iosRewardedId : androidRewardedId;
 
-  /// 任一当前生效的广告单元 ID 是 Google 测试 ID 时为 true（发布口径下必须为 false）。
+  /// True when any active ad unit ID is a Google test ID (must be false in release builds).
   static bool get usingTestIds => <String>{
         banner,
         interstitial,
@@ -99,21 +99,22 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// UMP 同意流程封装（GDPR / 美国州法规消息）。
+/// UMP consent flow wrapper (GDPR / US state regulation messages).
 ///
-/// 所有方法都不会抛出异常：UMP 未配置消息、网络失败等情况只记录日志，
-/// 以免阻塞应用启动。
+/// None of these methods throw: if UMP has no message configured or the
+/// network fails, they only log, so app startup is never blocked.
 class AdsConsent {
   AdsConsent._();
 
-  /// 请求同意信息并按需展示同意表单。
+  /// Requests consent info and shows the consent form if required.
   ///
-  /// [debugSettings] 可在调试时强制 EEA 地理位置以验证表单流程：
+  /// [debugSettings] can force EEA geography in debug builds to verify the
+  /// form flow:
   /// \`\`\`dart
   /// AdsConsent.gather(
   ///   debugSettings: ConsentDebugSettings(
   ///     debugGeography: DebugGeography.debugGeographyEea,
-  ///     testIdentifiers: ['<你的设备测试 ID>'],
+  ///     testIdentifiers: ['<your device test ID>'],
   ///   ),
   /// );
   /// \`\`\`
@@ -137,15 +138,20 @@ class AdsConsent {
     }
   }
 
-  /// UMP 同意状态是否允许请求广告（每次启动都应重新检查）。
+  /// Whether UMP consent state allows ad requests (re-check on every launch).
   static Future<bool> canRequestAds() => ConsentInformation.instance.canRequestAds();
 
-  /// 是否需要向用户提供"隐私选项"入口（EEA 等监管市场通常为 true）。
+  /// Whether a "privacy options" entry point must be offered to the user
+  /// (usually true in regulated markets such as the EEA).
   static Future<bool> isPrivacyOptionsRequired() async =>
       await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
       PrivacyOptionsRequirementStatus.required;
 
-  /// 展示隐私选项表单（放在应用的隐私/设置页面入口里调用）。
+  /// Shows the privacy options form (call from your privacy/settings page).
+  ///
+  /// After the form closes, callers should retry [AdsInitializer] so ads can
+  /// initialize once consent has been granted (see
+  /// \`AdsInitializer.showPrivacyOptionsAndRetry\`).
   static Future<void> showPrivacyOptionsForm() async {
     final Completer<FormError?> completer = Completer<FormError?>();
     ConsentForm.showPrivacyOptionsForm(completer.complete);
@@ -158,7 +164,7 @@ class AdsConsent {
     }
   }
 
-  /// 重置同意状态（仅调试用）。
+  /// Resets consent state (debug only).
   static void reset() => ConsentInformation.instance.reset();
 
   static Future<FormError?> _requestConsentInfoUpdate(ConsentRequestParameters params) {
@@ -183,7 +189,7 @@ class AdsConsent {
 export function renderAdsInitializer(opts: TemplateOptions): string {
   const requestConfig = opts.childDirected
     ? `
-      // 面向儿童：设置 child-directed 标记（COPPA）。
+      // Child-directed treatment (COPPA).
       await MobileAds.instance.updateRequestConfiguration(
         RequestConfiguration(
           tagForChildDirectedTreatment: TagForChildDirectedTreatment.yes,
@@ -198,26 +204,57 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ads_consent.dart';
 
-/// 广告 SDK 初始化器：先走 UMP 同意流程，[AdsConsent.canRequestAds] 为真后
-/// 才调用 \`MobileAds.instance.initialize()\`。
+/// Ad SDK initializer: runs the UMP consent flow first, and only calls
+/// \`MobileAds.instance.initialize()\` once [AdsConsent.canRequestAds] is true.
 ///
-/// \`initialize()\` 幂等：重复调用返回同一个 Future；任何异常都会被吞掉并
-/// 返回 false，绝不让 App 因广告初始化崩溃。
+/// \`initialize()\` is idempotent: concurrent calls share the same Future and
+/// a successful result is cached. A failed attempt (consent not granted or an
+/// error) clears the cache so the next call retries — e.g. after the user
+/// grants consent via the privacy options form. All exceptions are swallowed
+/// and reported as false; ad initialization must never crash the app.
 class AdsInitializer {
   AdsInitializer._();
 
   static final AdsInitializer instance = AdsInitializer._();
 
-  /// 初始化完成（可以请求广告）后变为 true。
+  /// Becomes true once initialization succeeded (ads can be requested).
   final ValueNotifier<bool> ready = ValueNotifier<bool>(false);
 
   Future<bool>? _pending;
 
-  Future<bool> initialize() => _pending ??= _initialize();
+  /// Runs the consent-gated initialization. Only a successful (true) result
+  /// is cached; false results and errors are retried on the next call.
+  Future<bool> initialize() {
+    final Future<bool>? pending = _pending;
+    if (pending != null) return pending;
+    final Future<bool> future = _initialize();
+    _pending = future;
+    // Only keep the cached Future when initialization succeeded; otherwise a
+    // later consent grant could never recover.
+    future.then((bool ok) {
+      if (!ok) _pending = null;
+    }, onError: (Object _) {
+      _pending = null;
+    });
+    return future;
+  }
+
+  /// Shows the UMP privacy options form, then retries initialization if it
+  /// has not succeeded yet (first consent grant often happens in that form).
+  ///
+  /// Use this instead of calling [AdsConsent.showPrivacyOptionsForm] directly
+  /// from your settings/privacy page, so ad requests can start right after
+  /// the user consents.
+  Future<void> showPrivacyOptionsAndRetry() async {
+    await AdsConsent.showPrivacyOptionsForm();
+    if (!ready.value) {
+      await initialize();
+    }
+  }
 
   Future<bool> _initialize() async {
     try {
-      // 同意流程失败不会抛异常（见 AdsConsent）。
+      // The consent flow never throws (see AdsConsent).
       await AdsConsent.gather();
       final bool canRequestAds = await AdsConsent.canRequestAds();
       if (!canRequestAds) {

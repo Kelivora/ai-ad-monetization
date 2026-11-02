@@ -172,10 +172,12 @@ function collectAdCodeAndScreens(root: string): {
   for (const rel of dartFiles) {
     const text = readTextIfExists(`${root}/lib/${rel}`);
     if (!text) continue;
-    const symbols = AD_CODE_SYMBOLS.filter((sym) => text.includes(sym));
+    // 符号匹配忽略注释（注释里的示例代码不算已有集成）
+    const code = text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+    const symbols = AD_CODE_SYMBOLS.filter((sym) => usesAdSymbol(code, sym));
     if (symbols.length > 0) existingAdCode.push({ file: `lib/${rel}`, symbols });
     if (screens.length >= 50) continue;
-    const scrollSource = text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    const scrollSource = code;
     const scrollable = SCROLLABLE_WIDGETS.some((w) => new RegExp(`\\b${w}\\b`).test(scrollSource));
     for (const m of text.matchAll(/class\s+(\w+)\s+extends\s+(?:StatelessWidget|StatefulWidget)/g)) {
       if (screens.length >= 50) break;
@@ -183,6 +185,12 @@ function collectAdCodeAndScreens(root: string): {
     }
   }
   return { existingAdCode, screens };
+}
+
+/** 单词边界匹配广告符号：`AnchoredBannerAd` 不会命中 `BannerAd`。 */
+function usesAdSymbol(code: string, symbol: string): boolean {
+  const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<![A-Za-z0-9_])${escaped}`).test(code);
 }
 
 /** 项目分析主入口（architecture.md 3.3）。 */

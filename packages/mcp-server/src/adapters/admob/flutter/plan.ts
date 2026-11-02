@@ -48,7 +48,7 @@ const MANUAL_STEPS = [
   '发布前把 AndroidManifest.xml 的 com.google.android.gms.ads.APPLICATION_ID 与 Info.plist 的 GADApplicationIdentifier 替换为真实 App ID（当前为 Google 示例 ID）。',
   '用 --dart-define=ADMOB_ANDROID_BANNER_ID=...（等）注入生产广告单元 ID，并在 release 口径下重新跑 validate_ad_config。',
   '在你的域名下发布 app-ads.txt（登记 AdMob 发布者 ID ca-app-pub-XXXXXXXXXXXXXXXX）。',
-  '在应用的隐私/设置页面放置"隐私选项"入口：AdsConsent.isPrivacyOptionsRequired() 为 true 时展示，点击调用 AdsConsent.showPrivacyOptionsForm()。',
+  '在应用的隐私/设置页面放置"隐私选项"入口：AdsConsent.isPrivacyOptionsRequired() 为 true 时展示，点击调用 AdsInitializer.instance.showPrivacyOptionsAndRetry()（展示表单并在用户同意后自动重试初始化）。',
 ];
 
 /**

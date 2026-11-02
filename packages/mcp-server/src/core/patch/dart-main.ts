@@ -47,7 +47,7 @@ export function patchDartMain(originalText: string, opts: DartMainPatchOptions =
   if (!originalText.includes('WidgetsFlutterBinding.ensureInitialized()')) {
     snippet.push(`${indent}WidgetsFlutterBinding.ensureInitialized();`);
   }
-  snippet.push(`${indent}AdsInitializer.instance.initialize(); // 不 await：不阻塞启动`, `${indent}${END_MARKER}`);
+  snippet.push(`${indent}AdsInitializer.instance.initialize(); // not awaited: do not block startup`, `${indent}${END_MARKER}`);
   lines.splice(runAppIdx, 0, ...snippet);
   changed = true;
   text = lines.join('\n');

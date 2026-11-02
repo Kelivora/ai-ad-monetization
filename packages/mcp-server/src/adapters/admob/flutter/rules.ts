@@ -31,12 +31,28 @@ function constraintLowerBound(constraint: string): string | undefined {
 
 const GDPR_MARKETS = ['EEA', 'UK', 'CH'];
 
-/** 收集 lib 下所有 .dart 文件（含 lib/ads/）。 */
-function collectDartSources(ctx: RuleContext): Array<{ file: string; text: string }> {
+/** 收集 lib 下所有 .dart 文件（含 lib/ads/）。code 为去掉注释后的文本。 */
+function collectDartSources(ctx: RuleContext): Array<{ file: string; text: string; code: string }> {
   const libDir = join(ctx.analysis.root, 'lib');
   return listDartFiles(libDir)
-    .map((rel) => ({ file: `lib/${rel}`, text: readTextIfExists(join(libDir, rel)) ?? '' }))
+    .map((rel) => {
+      const text = readTextIfExists(join(libDir, rel)) ?? '';
+      return { file: `lib/${rel}`, text, code: stripDartComments(text) };
+    })
     .filter((entry) => entry.text.length > 0);
+}
+
+/** 去掉 /* 块注释 *\/ 与 // 行注释（保留字符串字面量里的 //，如 URL）。 */
+function stripDartComments(text: string): string {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+}
+
+/** 单词边界匹配符号：`AnchoredBannerAd(` 不会命中 `BannerAd(`。 */
+function usesSymbol(code: string, symbol: string): boolean {
+  const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<![A-Za-z0-9_])${escaped}`).test(code);
 }
 
 function testIdSource(ctx: RuleContext): SourceRef | undefined {
@@ -369,7 +385,7 @@ export function admobFlutterRules(): ValidationRule[] {
       title: 'MobileAds 已初始化',
       category: 'code',
       check: (ctx) => {
-        const hit = collectDartSources(ctx).find((s) => s.text.includes('MobileAds.instance.initialize'));
+        const hit = collectDartSources(ctx).find((s) => usesSymbol(s.code, 'MobileAds.instance.initialize'));
         if (hit) {
           return { ruleId: 'SDK_INITIALIZED', title: 'MobileAds 已初始化', status: 'pass', message: `在 ${hit.file} 中调用 MobileAds.instance.initialize()` };
         }
@@ -388,8 +404,8 @@ export function admobFlutterRules(): ValidationRule[] {
       category: 'compliance',
       check: (ctx) => {
         const sources = collectDartSources(ctx);
-        const hasInfo = sources.some((s) => s.text.includes('requestConsentInfoUpdate'));
-        const hasForm = sources.some((s) => s.text.includes('loadAndShowConsentFormIfRequired'));
+        const hasInfo = sources.some((s) => usesSymbol(s.code, 'requestConsentInfoUpdate'));
+        const hasForm = sources.some((s) => usesSymbol(s.code, 'loadAndShowConsentFormIfRequired'));
         if (hasInfo && hasForm) {
           return { ruleId: 'CONSENT_FLOW', title: 'UMP 同意流程完整', status: 'pass', message: 'requestConsentInfoUpdate → loadAndShowConsentFormIfRequired 均存在' };
         }
@@ -408,7 +424,7 @@ export function admobFlutterRules(): ValidationRule[] {
       title: '初始化前检查 canRequestAds',
       category: 'compliance',
       check: (ctx) => {
-        const hit = collectDartSources(ctx).find((s) => s.text.includes('canRequestAds'));
+        const hit = collectDartSources(ctx).find((s) => usesSymbol(s.code, 'canRequestAds'));
         if (hit) {
           return { ruleId: 'CAN_REQUEST_ADS_GATE', title: '初始化前检查 canRequestAds', status: 'pass', message: `在 ${hit.file} 中检查 canRequestAds()` };
         }
@@ -427,7 +443,7 @@ export function admobFlutterRules(): ValidationRule[] {
       title: '隐私选项入口',
       category: 'compliance',
       check: (ctx) => {
-        const hit = collectDartSources(ctx).find((s) => !s.file.startsWith('lib/ads/') && s.text.includes('showPrivacyOptionsForm'));
+        const hit = collectDartSources(ctx).find((s) => !s.file.startsWith('lib/ads/') && usesSymbol(s.code, 'showPrivacyOptions'));
         if (hit) {
           return { ruleId: 'PRIVACY_OPTIONS_ENTRY', title: '隐私选项入口', status: 'pass', message: `${hit.file} 中有隐私选项表单入口` };
         }
@@ -439,8 +455,8 @@ export function admobFlutterRules(): ValidationRule[] {
           ruleId: 'PRIVACY_OPTIONS_ENTRY',
           title: '隐私选项入口',
           status: 'warning',
-          message: 'lib/ads/ 之外没有 showPrivacyOptionsForm 调用：需在隐私/设置页面放置"隐私选项"入口（AdsConsent.isPrivacyOptionsRequired() 为 true 时展示）',
-          fix: '在设置页添加入口并调用 AdsConsent.showPrivacyOptionsForm()',
+          message: 'lib/ads/ 之外没有隐私选项表单调用：需在隐私/设置页面放置"隐私选项"入口（AdsConsent.isPrivacyOptionsRequired() 为 true 时展示）',
+          fix: '在设置页添加入口并调用 AdsInitializer.instance.showPrivacyOptionsAndRetry()（展示表单并在用户同意后重试初始化）',
         };
       },
     },
@@ -450,13 +466,13 @@ export function admobFlutterRules(): ValidationRule[] {
       category: 'code',
       check: (ctx) => {
         const findings: ValidationFinding[] = [];
-        for (const { file, text } of collectDartSources(ctx)) {
-          if (!text.includes('BannerAd(')) continue;
+        for (const { file, code } of collectDartSources(ctx)) {
+          if (!usesSymbol(code, 'BannerAd(')) continue;
           findings.push({
             ruleId: 'BANNER_DISPOSE',
             title: 'BannerAd 使用后释放',
-            status: text.includes('.dispose()') ? 'pass' : 'fail',
-            message: text.includes('.dispose()') ? `${file} 正确释放 BannerAd` : `${file} 创建了 BannerAd 但未调用 dispose()（内存泄漏）`,
+            status: code.includes('.dispose()') ? 'pass' : 'fail',
+            message: code.includes('.dispose()') ? `${file} 正确释放 BannerAd` : `${file} 创建了 BannerAd 但未调用 dispose()（内存泄漏）`,
             file,
             fix: '在 State.dispose / 广告卸载回调中调用 ad.dispose()',
           });
@@ -473,14 +489,14 @@ export function admobFlutterRules(): ValidationRule[] {
       category: 'code',
       check: (ctx) => {
         const findings: ValidationFinding[] = [];
-        for (const { file, text } of collectDartSources(ctx)) {
-          const usesFullscreen = text.includes('InterstitialAd.load') || text.includes('RewardedAd.load');
+        for (const { file, code } of collectDartSources(ctx)) {
+          const usesFullscreen = usesSymbol(code, 'InterstitialAd.load') || usesSymbol(code, 'RewardedAd.load');
           if (!usesFullscreen) continue;
           findings.push({
             ruleId: 'FULLSCREEN_DISPOSE',
             title: '插屏/激励广告释放',
-            status: text.includes('.dispose()') ? 'pass' : 'fail',
-            message: text.includes('.dispose()') ? `${file} 正确释放全屏广告` : `${file} 加载了插屏/激励广告但未调用 dispose()`,
+            status: code.includes('.dispose()') ? 'pass' : 'fail',
+            message: code.includes('.dispose()') ? `${file} 正确释放全屏广告` : `${file} 加载了插屏/激励广告但未调用 dispose()`,
             file,
             fix: '在 onAdDismissedFullScreenContent / onAdFailedToShowFullScreenContent 中 dispose 并重新加载',
           });
@@ -497,8 +513,8 @@ export function admobFlutterRules(): ValidationRule[] {
       category: 'code',
       check: (ctx) => {
         const deprecated = ['getAnchoredAdaptiveBannerAdSize(', 'getCurrentOrientationAnchoredAdaptiveBannerAdSize('];
-        for (const { file, text } of collectDartSources(ctx)) {
-          const api = deprecated.find((a) => text.includes(a) && !text.includes('getLargeAnchoredAdaptiveBannerAdSize('));
+        for (const { file, code } of collectDartSources(ctx)) {
+          const api = deprecated.find((a) => usesSymbol(code, a));
           if (api) {
             return {
               ruleId: 'DEPRECATED_BANNER_SIZE_API',
@@ -521,7 +537,7 @@ export function admobFlutterRules(): ValidationRule[] {
         if (!ctx.childDirected) {
           return { ruleId: 'CHILD_DIRECTED_TAG', title: '面向儿童应用设置 child-directed 标记', status: 'na', message: '未声明面向儿童（childDirected=false）' };
         }
-        const hit = collectDartSources(ctx).find((s) => s.text.includes('tagForChildDirectedTreatment'));
+        const hit = collectDartSources(ctx).find((s) => usesSymbol(s.code, 'tagForChildDirectedTreatment'));
         if (hit) {
           return { ruleId: 'CHILD_DIRECTED_TAG', title: '面向儿童应用设置 child-directed 标记', status: 'pass', message: `${hit.file} 设置了 tagForChildDirectedTreatment（COPPA）` };
         }

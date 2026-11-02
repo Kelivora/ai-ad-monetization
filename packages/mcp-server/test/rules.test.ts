@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cpSync, mkdtempSync, rmSync } from 'node:fs';
+import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -141,5 +141,36 @@ describe('validateAdConfig 规则', () => {
     expect(output.summary.pass + output.summary.warning + output.summary.fail + output.summary.na).toBe(output.findings.length);
     const fails = output.findings.filter((f) => f.status === 'fail').length;
     expect(output.summary.fail).toBe(fails);
+  });
+
+  it('符号匹配用单词边界且忽略注释：AnchoredBannerAd 不触发 BANNER_DISPOSE', async () => {
+    const root = copyFixture('flutter_basic');
+    try {
+      // 只引用 AnchoredBannerAd()（子串包含 BannerAd(），并有注释里的示例代码
+      writeFileSync(
+        join(root, 'lib', 'home_page.dart'),
+        [
+          "import 'package:flutter/material.dart';",
+          '',
+          '// Example: final ad = BannerAd(...); remember ad.dispose();',
+          'class HomePage extends StatelessWidget {',
+          '  const HomePage({super.key});',
+          '',
+          '  @override',
+          '  Widget build(BuildContext context) =>',
+          '      const Column(children: [SizedBox()]);',
+          '}',
+          '',
+          '// Widget below hosts an AnchoredBannerAd() instance.',
+        ].join('\n'),
+      );
+      const output = await validateAdConfig({ projectPath: root });
+      // 注释里的 BannerAd( 不算使用 → 整条规则 na（fixture 本身没有真实 BannerAd 使用）
+      expect(finding(output, 'BANNER_DISPOSE').every((f) => f.status === 'na')).toBe(true);
+      // analyze 的 existingAdCode 扫描同样不受注释/子串影响
+      expect(output.findings.some((f) => f.file === 'lib/home_page.dart')).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

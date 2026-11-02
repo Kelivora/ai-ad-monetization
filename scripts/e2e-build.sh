@@ -23,7 +23,7 @@ node "$CLI" apply "$E2E_DIR" --formats banner,interstitial,rewarded --yes
 # 额外写一个引用生成组件/控制器的文件，让 banner/controller 代码也被编译检查
 # （仅用于 e2e 验证，不属于生成器输出）
 cat > "$E2E_DIR/lib/ads_demo_usage.dart" <<'DART'
-// e2e-only file: 编译检查生成代码被真实使用（不属于生成器输出）。
+// e2e-only file: compiles the generated code against real usage (not generator output).
 import 'package:flutter/material.dart';
 
 import 'ads/ads.dart';
@@ -81,7 +81,7 @@ class _AdsDemoPageState extends State<AdsDemoPage> {
               ),
             ),
             FilledButton(
-              onPressed: () => AdsConsent.showPrivacyOptionsForm(),
+              onPressed: () => AdsInitializer.instance.showPrivacyOptionsAndRetry(),
               child: const Text('Privacy options'),
             ),
           ],

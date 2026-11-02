@@ -233,7 +233,7 @@ import 'ads/ads.dart';`);
     expect(result.newText).toContain(`void main() {
   // ai-ad-monetization:begin
   WidgetsFlutterBinding.ensureInitialized();
-  AdsInitializer.instance.initialize(); // 不 await：不阻塞启动
+  AdsInitializer.instance.initialize(); // not awaited: do not block startup
   // ai-ad-monetization:end
   runApp(const MyApp());
 }`);

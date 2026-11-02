@@ -9,15 +9,15 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'ad_unit_ids.dart';
 import 'ads_initializer.dart';
 
-/// 底部锚定自适应横幅（large anchored adaptive banner）。
+/// Bottom-anchored adaptive banner (large anchored adaptive banner).
 ///
-/// - 加载完成前不占位（\`SizedBox.shrink\`），避免布局跳动；
-/// - 初始化失败或广告加载失败时静默降级；
-/// - State 销毁时释放广告资源。
+/// - Renders nothing (\`SizedBox.shrink\`) until loaded, so layout does not jump;
+/// - Fails silently when initialization or ad loading fails;
+/// - Releases ad resources when the State is disposed.
 class AnchoredBannerAd extends StatefulWidget {
   const AnchoredBannerAd({super.key, this.adUnitId});
 
-  /// 覆盖默认广告单元 ID（默认取 [AdUnitIds.banner]）。
+  /// Overrides the ad unit ID (defaults to [AdUnitIds.banner]).
   final String? adUnitId;
 
   @override
@@ -39,7 +39,7 @@ class _AnchoredBannerAdState extends State<AnchoredBannerAd> {
 
   Future<void> _loadAd() async {
     _loading = true;
-    // 同步取宽度，避免 await 之后使用 context。
+    // Read the width synchronously: never use context after an await.
     final double width = MediaQuery.sizeOf(context).width;
     final bool initialized = await AdsInitializer.instance.initialize();
     if (!initialized || !mounted) {
@@ -116,13 +116,14 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'ad_unit_ids.dart';
 import 'ads_initializer.dart';
 
-/// 插屏广告控制器：预加载 + 频控（最小展示间隔）+ 关闭后自动重新加载。
+/// Interstitial ad controller: preload + frequency cap (minimum show
+/// interval) + automatic reload after the ad is closed.
 ///
 /// \`\`\`dart
 /// final InterstitialAdController interstitial = InterstitialAdController();
 /// await interstitial.load();
-/// if (await interstitial.showIfReady()) { /* 已展示 */ }
-/// interstitial.dispose(); // 页面销毁时
+/// if (await interstitial.showIfReady()) { /* shown */ }
+/// interstitial.dispose(); // when the page is destroyed
 /// \`\`\`
 class InterstitialAdController {
   InterstitialAdController({
@@ -130,10 +131,10 @@ class InterstitialAdController {
     this.minIntervalSeconds = ${opts.interstitialMinIntervalSeconds},
   });
 
-  /// 覆盖默认广告单元 ID（默认取 [AdUnitIds.interstitial]）。
+  /// Overrides the ad unit ID (defaults to [AdUnitIds.interstitial]).
   final String? adUnitId;
 
-  /// 两次插屏展示之间的最小间隔（秒）。
+  /// Minimum interval in seconds between two interstitial shows.
   final int minIntervalSeconds;
 
   static const int _maxRetries = 3;
@@ -144,10 +145,10 @@ class InterstitialAdController {
   bool _disposed = false;
   int _retryCount = 0;
 
-  /// 是否有已加载、可展示的插屏。
+  /// Whether a loaded interstitial is ready to show.
   bool get isReady => _ad != null;
 
-  /// 预加载插屏（幂等；重复调用在已有广告或加载中时直接返回）。
+  /// Preloads an interstitial (idempotent; no-op when loading or loaded).
   Future<void> load() async {
     if (_disposed || _loading || _ad != null) return;
     _loading = true;
@@ -161,6 +162,11 @@ class InterstitialAdController {
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
+          // The controller may have been disposed while loading.
+          if (_disposed) {
+            ad.dispose();
+            return;
+          }
           _retryCount = 0;
           _loading = false;
           ad.fullScreenContentCallback = FullScreenContentCallback(
@@ -176,6 +182,7 @@ class InterstitialAdController {
           _ad = ad;
         },
         onAdFailedToLoad: (LoadAdError error) {
+          if (_disposed) return;
           _loading = false;
           _retryWithBackoff();
         },
@@ -183,7 +190,8 @@ class InterstitialAdController {
     );
   }
 
-  /// 就绪且未超过最小间隔时展示插屏；返回是否真正发起了展示。
+  /// Shows the interstitial when ready and outside the minimum interval;
+  /// returns whether a show was actually started.
   Future<bool> showIfReady() async {
     final InterstitialAd? ad = _ad;
     if (ad == null) return false;
@@ -201,10 +209,12 @@ class InterstitialAdController {
 
   void _reload() {
     _ad = null;
+    if (_disposed) return;
     load();
   }
 
-  /// 加载失败后的指数退避重试（2/4/8 秒，最多 [_maxRetries] 次）。
+  /// Exponential backoff after load failures (2/4/8 s, at most
+  /// [_maxRetries] times).
   Future<void> _retryWithBackoff() async {
     if (_disposed || _retryCount >= _maxRetries) return;
     _retryCount += 1;
@@ -213,7 +223,7 @@ class InterstitialAdController {
     await load();
   }
 
-  /// 释放广告资源；之后的 load/show 调用都是 no-op。
+  /// Releases ad resources; later load/show calls are no-ops.
   void dispose() {
     _disposed = true;
     _ad?.dispose();
@@ -232,7 +242,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'ad_unit_ids.dart';
 import 'ads_initializer.dart';
 
-/// 激励视频控制器：预加载、[isReady] 状态、发放奖励回调、关闭后自动重新加载。
+/// Rewarded ad controller: preload, [isReady] state, reward callback, and
+/// automatic reload after the ad is closed.
 ///
 /// \`\`\`dart
 /// final RewardedAdController rewarded = RewardedAdController();
@@ -245,12 +256,13 @@ import 'ads_initializer.dart';
 class RewardedAdController {
   RewardedAdController({this.adUnitId});
 
-  /// 覆盖默认广告单元 ID（默认取 [AdUnitIds.rewarded]）。
+  /// Overrides the ad unit ID (defaults to [AdUnitIds.rewarded]).
   final String? adUnitId;
 
   static const int _maxRetries = 3;
 
-  /// 广告就绪状态（监听它来更新"看视频领奖励"按钮的可用性）。
+  /// Whether a rewarded ad is ready (listen to update the "watch ad for
+  /// reward" button availability).
   final ValueNotifier<bool> isReady = ValueNotifier<bool>(false);
 
   RewardedAd? _ad;
@@ -258,7 +270,7 @@ class RewardedAdController {
   bool _disposed = false;
   int _retryCount = 0;
 
-  /// 预加载激励视频（幂等）。
+  /// Preloads a rewarded ad (idempotent).
   Future<void> load() async {
     if (_disposed || _loading || _ad != null) return;
     _loading = true;
@@ -272,6 +284,11 @@ class RewardedAdController {
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
+          // The controller may have been disposed while loading.
+          if (_disposed) {
+            ad.dispose();
+            return;
+          }
           _retryCount = 0;
           _loading = false;
           ad.fullScreenContentCallback = FullScreenContentCallback(
@@ -288,6 +305,7 @@ class RewardedAdController {
           isReady.value = true;
         },
         onAdFailedToLoad: (LoadAdError error) {
+          if (_disposed) return;
           _loading = false;
           _retryWithBackoff();
         },
@@ -295,8 +313,8 @@ class RewardedAdController {
     );
   }
 
-  /// 就绪时展示激励视频；[onReward] 在用户赚得奖励时回调（可能多次）。
-  /// 返回是否真正发起了展示。
+  /// Shows the rewarded ad when ready; [onReward] fires each time the user
+  /// earns a reward. Returns whether a show was actually started.
   Future<bool> show({required void Function(RewardItem reward) onReward}) async {
     final RewardedAd? ad = _ad;
     if (ad == null) return false;
@@ -311,10 +329,12 @@ class RewardedAdController {
   void _reload() {
     _ad = null;
     isReady.value = false;
+    if (_disposed) return;
     load();
   }
 
-  /// 加载失败后的指数退避重试（2/4/8 秒，最多 [_maxRetries] 次）。
+  /// Exponential backoff after load failures (2/4/8 s, at most
+  /// [_maxRetries] times).
   Future<void> _retryWithBackoff() async {
     if (_disposed || _retryCount >= _maxRetries) return;
     _retryCount += 1;
@@ -323,7 +343,7 @@ class RewardedAdController {
     await load();
   }
 
-  /// 释放广告资源；之后的 load/show 调用都是 no-op。
+  /// Releases ad resources; later load/show calls are no-ops.
   void dispose() {
     _disposed = true;
     _ad?.dispose();
@@ -345,7 +365,7 @@ export function renderAdsBarrel(opts: TemplateOptions, formats: TemplateOptions[
   if (formats.includes('rewarded')) exports.push("export 'rewarded_ad_controller.dart';");
   return `${fileHeader(opts)}
 
-// 统一导出：\`import 'ads/ads.dart';\`
+// Barrel export: \`import 'ads/ads.dart';\`
 ${exports.join('\n')}
 `;
 }
