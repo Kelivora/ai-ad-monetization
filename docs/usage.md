@@ -85,7 +85,23 @@
 { "tool": "verify_ad_integration", "arguments": { "projectPath": "/Users/me/code/news_app", "levels": ["static", "build", "runtime"] } }
 ```
 
-`verify_ad_integration` 的结果分三级返回：`static` 和 `build` 实际执行，`runtime` 只返回人工检查清单（状态为 `requires_manual_verification`）。
+`verify_ad_integration` 的结果分三级返回。`static` 和 `build` 实际执行；`runtime` 在不传 `devices` 时只返回人工检查清单（状态为 `requires_manual_verification`）。
+
+传入设备 id（用 `flutter devices` 查看，模拟器需要先启动）后，会在每台设备上运行接入时生成的 `integration_test/ads_smoke_test.dart`。它用 Google 测试广告单元检查同意状态、SDK 初始化和各格式加载；`showFullscreen: true` 时还会实际展示激励广告并等待奖励回调：
+
+```json
+{
+  "tool": "verify_ad_integration",
+  "arguments": {
+    "projectPath": "/Users/me/code/news_app",
+    "levels": ["runtime"],
+    "devices": ["<iOS simulator id>", "emulator-5554"],
+    "showFullscreen": true
+  }
+}
+```
+
+失败的检查会带上广告 SDK 的错误码和诊断建议。自动化只证明测试广告能在所选设备上加载；界面观感、同意表单交互和真实 ID 的填充仍需人工确认。
 
 ### 收益分析
 
@@ -121,6 +137,9 @@
 | `anchored_banner_ad.dart` | 自适应锚定横幅 Widget |
 | `interstitial_ad_controller.dart` | 插屏：预加载、频控（默认 180 秒）、关闭后自动重新加载 |
 | `rewarded_ad_controller.dart` | 激励：预加载、`isReady` 状态、奖励回调 |
+| `integration_test/ads_smoke_test.dart` | 设备上的冷烟测试（可用 `includeSmokeTest: false` 关闭），同时在 `dev_dependencies` 加入 `integration_test` |
+
+插屏和激励控制器的 `lastLoadError` 返回最近一次加载失败的错误；横幅可传入 `onAdFailedToLoad` 回调。
 
 ```dart
 import 'ads/ads.dart';
@@ -195,7 +214,7 @@ node $CLI analyze  ~/code/news_app
 node $CLI plan     ~/code/news_app --formats banner,interstitial,rewarded
 node $CLI apply    ~/code/news_app --formats banner,interstitial,rewarded --yes
 node $CLI validate ~/code/news_app --profile release
-node $CLI verify   ~/code/news_app --levels static,build,runtime --json-out verify.json
+node $CLI verify   ~/code/news_app --levels static,build,runtime --devices emulator-5554 --show-fullscreen --json-out verify.json
 node $CLI report   ~/code/news_app --verification-file verify.json --out report.md
 node $CLI perf     --file packages/mcp-server/test/fixtures/revenue/admob_export.csv
 ```

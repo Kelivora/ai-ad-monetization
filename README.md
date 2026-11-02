@@ -15,7 +15,13 @@
 | Unity LevelPlay × Unity | 委派官方 Skill | `npx skills add Unity-Technologies/skills` |
 | AppLovin MAX、LevelPlay × Flutter 等 | 仅知识库 | 可参与选型与对比，提供文档引导，不自动写入 |
 
-本项目刻意只把一条链路做扎实：在 Flutter 3.47 新建工程上完成接入后，`flutter analyze` 无问题、iOS 模拟器构建通过、静态校验 0 失败。Android 构建在开发机上未验证（缺少 Android SDK），详见 [MVP 验收报告](docs/mvp-acceptance-report.md)。
+本项目刻意只把一条链路做扎实。在 Flutter 3.47 新建工程上完成接入后：
+
+- `flutter analyze` 无问题，Android 与 iOS debug 构建都通过，静态校验 0 失败。
+- 在 iOS 模拟器上自动加载了横幅、插屏和激励三种 Google 测试广告，并触发了奖励回调。
+- Android 模拟器上横幅和插屏通过；激励视频因测试网络（中国大陆出口）无法下载素材，待换网络复测。
+
+详见 [MVP 验收报告](docs/mvp-acceptance-report.md)。当前状态适合小规模公开试用。
 
 ## 快速开始
 
@@ -25,7 +31,13 @@ node packages/mcp-server/scripts/smoke-stdio.mjs     # 列出全部工具
 bash scripts/e2e-build.sh ios                        # 在示例工程副本上跑完整链路
 ```
 
-接入 Claude Code、Cursor 或其他 MCP 客户端的方法见 [安装指南](docs/install.md)。
+在 Claude Code 中只为当前会话加载插件（不修改全局配置）：
+
+```bash
+claude --plugin-dir /path/to/ai-ad-monetization
+```
+
+长期安装、Cursor 或其他 MCP 客户端的接入方法见 [安装指南](docs/install.md)。
 
 ## 工具
 
@@ -45,7 +57,7 @@ bash scripts/e2e-build.sh ios                        # 在示例工程副本上�
 | `build_integration_report` | 只读 | 生成 Markdown 接入报告 |
 | `get_ad_revenue` | 只读 | 读取收益数据（导出文件或用户自备令牌的 AdMob API） |
 | `analyze_ad_performance` | 只读 | eCPM、填充率、展示率、CTR 与启发式建议 |
-| `verify_ad_integration` | 执行命令 | 三级验证：静态、构建、运行时检查清单；不修改源码 |
+| `verify_ad_integration` | 执行命令 | 三级验证：静态、构建、运行时（指定设备时在模拟器或真机上自动跑冷烟测试）；不修改源码 |
 | `generate_ad_integration` | **写入** | 计划 → 确认 → 写入；自动备份，幂等，不覆盖业务代码 |
 
 ## Skills

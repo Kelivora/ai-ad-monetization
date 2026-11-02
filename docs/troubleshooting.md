@@ -37,6 +37,10 @@
 | `No such module 'google_mobile_ads'` | Pods 未安装或缓存损坏 | `cd ios && pod install --repo-update`，或 `flutter clean && flutter pub get` |
 | Android 构建全部 `skipped` | 本机没有 JDK 或 Android SDK | 安装 Android Studio 后执行 `flutter doctor --android-licenses`；或接受 Android 构建未验证 |
 
+| `sdkmanager` 下载长时间停住不动，但 `curl` 访问 dl.google.com 很快 | Java 优先走 IPv6，部分网络下连接挂起 | `export SDKMANAGER_OPTS="-Djava.net.preferIPv4Stack=true"` 后重试 |
+| `flutter doctor` 提示 `cmdline-tools component is missing` | Homebrew 装的命令行工具不在 SDK 目录内 | `sdkmanager --sdk_root=<sdk> "cmdline-tools;latest"`，再 `flutter doctor --android-licenses` |
+| Homebrew 装的 JDK 不被识别（`/usr/bin/java` 报找不到 Java Runtime） | macOS 的 `/usr/bin/java` 只是占位程序 | `flutter config --jdk-dir <JDK Home>`；`verify_ad_integration` 会读取该配置 |
+
 `verify_ad_integration` 会对失败日志做关键字匹配并在 `diagnosis` 里给出上述建议，但这只是启发式判断，以完整日志为准。
 
 ## 4. 运行时问题
@@ -51,6 +55,9 @@
 | `LoadAdError code 3`（NO_FILL） | 新广告单元未生效或应用未审核 | 新单元等待数小时；开发期使用测试 ID |
 | iOS 上 Banner 区域空白 | AdWidget 没有确定的宽高 | 使用生成的 `AnchoredBannerAd`，它已用固定尺寸容器包裹 |
 | `This AdWidget is already in the Widget tree` | 同一个广告对象被两个 AdWidget 使用 | 每个广告实例只对应一个 Widget |
+| Android 上横幅、插屏正常，激励视频一直加载失败（code 0），`adb logcat -s Ads` 里有 `asset.gvt1-cn.com ... blocked by CORS policy` | 网络环境问题：从中国大陆出口访问时，视频素材被分配到 `gvt1-cn.com` CDN，Android 广告 WebView 因缺少 CORS 头无法加载。同样的代码在 iOS 上可以正常加载 | 换到非中国大陆网络出口后重试；这不是接入代码的问题，也不影响面向海外用户的真实投放 |
+
+加载失败时，生成的控制器会打印 `ai-ad-monetization: <format> failed to load ... code=... domain=... message=...`，并可通过 `lastLoadError` 读取最近一次错误。查看 SDK 自身日志：Android 用 `adb logcat -s Ads`，iOS 用 Xcode 控制台。
 
 ## 5. 上线前 `release` 校验失败
 

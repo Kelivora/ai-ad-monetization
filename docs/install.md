@@ -11,6 +11,20 @@
 | Xcode + CocoaPods | Xcode 16+ | iOS 模拟器构建验证 | iOS 构建验证需要 |
 | JDK 17 + Android SDK（compileSdk 36） | — | Android debug 构建验证 | Android 构建验证需要 |
 
+在 macOS 上不装 Android Studio 也可以准备 Android 环境（验收时就是这样装的）：
+
+```bash
+brew install openjdk@17
+brew install --cask android-commandlinetools
+export SDKMANAGER_OPTS="-Djava.net.preferIPv4Stack=true"   # 部分网络下 sdkmanager 走 IPv6 会卡住
+SDK=$HOME/Library/Android/sdk
+sdkmanager --sdk_root=$SDK "platform-tools" "platforms;android-36" "build-tools;36.0.0" "cmdline-tools;latest" \
+  "emulator" "system-images;android-36;google_apis;arm64-v8a"
+flutter config --android-sdk $SDK --jdk-dir /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+yes | flutter doctor --android-licenses
+$SDK/cmdline-tools/latest/bin/avdmanager create avd -n ads_api36 -k "system-images;android-36;google_apis;arm64-v8a" -d pixel_7
+```
+
 缺少 Flutter、Xcode 或 Android SDK 时，只读分析、方案生成、写入和静态校验都能正常运行，对应的构建步骤会显示 `skipped`，并说明缺什么。工具不会把跳过当成通过。
 
 ## 2. 构建 MCP 服务器
@@ -30,12 +44,20 @@ npm run kb:check     # 可选：检查知识库是否过期、插件版本是否
 
 ### 3.1 Claude Code（插件方式，推荐）
 
+先试用（只对当前会话生效，已在 Claude Code 2.1.304 上验证）：
+
+```bash
+claude --plugin-dir /path/to/ai-ad-monetization
+```
+
+长期安装：
+
 ```bash
 claude plugin marketplace add /path/to/ai-ad-monetization
 claude plugin install ai-ad-monetization@ai-ad-monetization
 ```
 
-插件会同时注册 `skills/` 下的 8 个 Skill，以及 `.mcp.json` 中的 `ad-monetization` MCP 服务器。
+插件会同时注册 `skills/` 下的 8 个 Skill，以及 `.mcp.json` 中的 `ad-monetization` MCP 服务器。在非交互模式（`claude -p`）下需要用 `--allowedTools` 放行工具，名称形如 `mcp__plugin_ai-ad-monetization_ad-monetization__analyze_project`。
 
 ### 3.2 只装 MCP 服务器（任意 MCP 客户端）
 
