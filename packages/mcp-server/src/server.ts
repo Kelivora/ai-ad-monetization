@@ -11,6 +11,10 @@ import { register as registerRecommend } from './tools/recommend_ad_platform.js'
 import { register as registerSearch } from './tools/search_ad_platforms.js';
 import { register as registerValidateAdConfig } from './tools/validate_ad_config.js';
 import { register as registerGenerateAdIntegration } from './tools/generate_ad_integration.js';
+import { register as registerVerifyAdIntegration } from './tools/verify_ad_integration.js';
+import { register as registerBuildReport } from './tools/build_integration_report.js';
+import { register as registerGetAdRevenue } from './tools/get_ad_revenue.js';
+import { register as registerAnalyzePerformance } from './tools/analyze_ad_performance.js';
 
 const SERVER_NAME = 'ad-monetization';
 const SERVER_VERSION = '0.1.0';
@@ -50,6 +54,10 @@ export function createServer(): McpServer {
   registerGuide(server);
   registerValidateAdConfig(server);
   registerGenerateAdIntegration(server);
+  registerVerifyAdIntegration(server);
+  registerBuildReport(server);
+  registerGetAdRevenue(server);
+  registerAnalyzePerformance(server);
 
   server.registerResource(
     'capabilities',

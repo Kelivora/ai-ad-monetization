@@ -19,6 +19,10 @@ const EXPECTED_TOOLS = [
   'get_integration_guide',
   'validate_ad_config',
   'generate_ad_integration',
+  'verify_ad_integration',
+  'build_integration_report',
+  'get_ad_revenue',
+  'analyze_ad_performance',
 ];
 
 let client: Client;
@@ -36,14 +40,22 @@ afterAll(async () => {
 });
 
 describe('MCP server', () => {
-  it('listTools 返回 10 个工具（8 只读 + validate_ad_config 只读 + generate_ad_integration 写）', async () => {
+  it('listTools 返回 14 个工具（11 只读 + generate_ad_integration 写 + verify_ad_integration 执行）', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([...EXPECTED_TOOLS].sort());
     for (const tool of tools) {
-      if (tool.name === 'generate_ad_integration') continue;
+      if (tool.name === 'generate_ad_integration' || tool.name === 'verify_ad_integration') continue;
       expect(tool.annotations?.readOnlyHint).toBe(true);
       expect(tool.annotations?.destructiveHint).toBe(false);
     }
+  });
+
+  it('verify_ad_integration 注解为 EXEC（readOnlyHint=false、destructiveHint=false）', async () => {
+    const { tools } = await client.listTools();
+    const tool = tools.find((t) => t.name === 'verify_ad_integration');
+    expect(tool).toBeDefined();
+    expect(tool?.annotations?.readOnlyHint).toBe(false);
+    expect(tool?.annotations?.destructiveHint).toBe(false);
   });
 
   it('generate_ad_integration 注解为 WRITE 且 _meta 要求用户交互', async () => {

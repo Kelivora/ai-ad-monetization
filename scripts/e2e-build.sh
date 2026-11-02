@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 # 端到端验证：examples/flutter_demo_app（只读）复制到 .tmp/e2e，
-# 用构建后的 CLI apply，然后 flutter pub get / analyze / build，再跑 validate。
+# 用构建后的 CLI apply，然后统一用 `cli verify`（static + build + runtime 清单）
+# 替代手写的 flutter pub get / analyze / build 步骤，最后跑 validate 与 `cli report`。
 #
-# 用法: scripts/e2e-build.sh [ios|android|all]   （默认 all；无 Android SDK 时 android 打印 SKIPPED 不算失败）
+# 用法: scripts/e2e-build.sh [ios|android|all]   （默认 all；无 Android SDK 时 android 构建自动 skipped 不算失败）
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TARGET="${1:-all}"
 E2E_DIR="$ROOT/.tmp/e2e"
 CLI="$ROOT/packages/mcp-server/dist/cli.js"
+REPORT="$ROOT/.tmp/e2e-report.md"
+VERIFY_JSON="$ROOT/.tmp/e2e-verify.json"
 
 echo "==> [0/7] 构建 mcp-server"
 (cd "$ROOT/packages/mcp-server" && npm run build)
 
 echo "==> [1/7] 准备干净的 .tmp/e2e"
-rm -rf "$E2E_DIR"
+rm -rf "$E2E_DIR" "$REPORT" "$VERIFY_JSON"
 cp -R "$ROOT/examples/flutter_demo_app" "$E2E_DIR"
 
 echo "==> [2/7] CLI apply（banner,interstitial,rewarded）"
@@ -92,39 +95,41 @@ class _AdsDemoPageState extends State<AdsDemoPage> {
 }
 DART
 
-echo "==> [3/7] flutter pub get"
-(cd "$E2E_DIR" && flutter pub get)
-
-echo "==> [4/7] flutter analyze（要求 0 error 0 warning）"
-(cd "$E2E_DIR" && flutter analyze)
-
-run_ios() {
-  echo "==> [5/7] flutter build ios --simulator --debug --no-codesign"
-  (cd "$E2E_DIR" && flutter build ios --simulator --debug --no-codesign)
-}
-
-run_android() {
-  # macOS 自带 /usr/bin/java 占位（无运行时），必须验证 java -version 真正可用
-  if [ ! -d "${ANDROID_HOME:-$HOME/Library/Android/sdk}" ] || ! java -version >/dev/null 2>&1; then
-    echo "==> [6/7] flutter build apk --debug: SKIPPED（无 Java/Android SDK）"
-    return 0
-  fi
-  echo "==> [6/7] flutter build apk --debug"
-  (cd "$E2E_DIR" && flutter build apk --debug)
-}
-
+# verify 内部依次执行：static（规则校验）→ pub get / analyze / build apk / build ios → runtime 人工清单。
+# ios/all 不限定 targets：无 Java/Android SDK 的机器上 android 步骤会 skipped 并写明原因（不算失败）。
+VERIFY_TARGETS=""
 case "$TARGET" in
-  ios) run_ios ;;
-  android) run_android ;;
-  all) run_ios; run_android ;;
+  ios|all) VERIFY_TARGETS="" ;;
+  android) VERIFY_TARGETS="--targets android" ;;
   *) echo "未知目标: $TARGET（可选 ios|android|all）"; exit 2 ;;
 esac
 
-echo "==> [7/7] validate（development + US,EEA / release）"
+echo "==> [3/7] cli verify（static + build + runtime 清单，结果另存 JSON）"
+set +e
+node "$CLI" verify "$E2E_DIR" --levels static,build,runtime --json-out "$VERIFY_JSON" $VERIFY_TARGETS
+VERIFY=$?
+set -e
+# 退出码：1 = static/build failed（真实失败）；3 = 全部 skipped（可接受的工具链缺失）；0 = 通过
+if [ "$VERIFY" -eq 1 ] || [ "$VERIFY" -eq 2 ]; then
+  echo "e2e verify: FAILED (exit=$VERIFY)"
+  exit 1
+fi
+
+echo "==> [4/7] validate（development + US,EEA）"
 set +e
 node "$CLI" validate "$E2E_DIR" --markets US,EEA; DEV_EEA=$?
+set -e
+
+echo "==> [5/7] validate（release + US,EEA，测试 ID 判 fail 是预期）"
+set +e
 node "$CLI" validate "$E2E_DIR" --profile release --markets US,EEA; REL=$?
 set -e
+
+echo "==> [6/7] cli report → .tmp/e2e-report.md（带真实验证结果）"
+node "$CLI" report "$E2E_DIR" --out "$REPORT" --verification-file "$VERIFY_JSON"
+
+echo "==> [7/7] 汇总"
 echo ""
-echo "e2e summary: validate(dev,US+EEA) exit=$DEV_EEA (warning-level results are expected; privacy options entry is a manual step); validate(release) exit=$REL (fail is expected: still using test IDs)"
+echo "e2e summary: verify exit=$VERIFY; validate(dev,US+EEA) exit=$DEV_EEA (warning-level results are expected; privacy options entry is a manual step); validate(release) exit=$REL (fail is expected: still using test IDs)"
+echo "e2e report: $REPORT"
 echo "e2e done: OK"

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { IntegrationGuide, GuideInput, PlatformAdapter, SupportInfo, PlanInput, IntegrationPlan, ValidationRule } from '../types.js';
+import type { IntegrationGuide, GuideInput, PlatformAdapter, SupportInfo, PlanInput, IntegrationPlan, RevenueQuery, RevenueRows, ValidationRule } from '../types.js';
 import type { KnowledgeBase } from '../../knowledge/loader.js';
 import type { AdFormat, Framework, OfficialSkillRef } from '../../knowledge/schema.js';
 import type { ProjectAnalysis } from '../../core/project/types.js';
@@ -7,6 +7,7 @@ import { toSourceRefs } from '../../knowledge/freshness.js';
 import { AppError } from '../../lib/errors.js';
 import { planFlutterIntegration } from './flutter/plan.js';
 import { admobFlutterRules } from './flutter/rules.js';
+import { fetchAdMobApiRevenue, type AdMobDimension } from './revenue-api.js';
 
 /** AdMob 适配器：由知识库驱动，MVP 中唯一 automated 的平台。 */
 export class AdMobAdapter implements PlatformAdapter {
@@ -109,5 +110,19 @@ export class AdMobAdapter implements PlatformAdapter {
       throw new AppError('UNSUPPORTED_COMBINATION', `AdMob 校验规则目前仅支持 Flutter（当前: ${framework}）`);
     }
     return admobFlutterRules();
+  }
+
+  /** 拉取 AdMob 报表 API（令牌来自环境变量 ADMOB_ACCESS_TOKEN，由用户自行获取）。 */
+  async fetchRevenue(query: RevenueQuery): Promise<RevenueRows> {
+    if (!query.publisherId) {
+      throw new AppError('INVALID_INPUT', 'admob_api 源需要 publisherId（pub-xxxxxxxxxxxxxxxx，见 AdMob 后台 设置 → 账号信息）');
+    }
+    const result = await fetchAdMobApiRevenue({
+      publisherId: query.publisherId,
+      startDate: query.startDate,
+      endDate: query.endDate,
+      dimensions: (query.dimensions ?? undefined) as AdMobDimension[] | undefined,
+    });
+    return { rows: result.rows, currency: result.currency };
   }
 }

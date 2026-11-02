@@ -1,0 +1,6 @@
+{
+  "rows": [
+    { "date": "2026-10-01", "country": "US", "format": "banner", "requests": 1000, "matchedRequests": 800, "impressions": 700, "clicks": 7, "earnings": 1.5, "currency": "USD" },
+    { "date": "2026-10-01", "country": "DE", "format": "rewarded", "requests": 500, "matchedRequests": 400, "impressions": 350, "clicks": 2, "earnings": 3.25, "currency": "USD" }
+  ]
+}

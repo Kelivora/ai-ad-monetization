@@ -2,6 +2,7 @@ import type { z } from 'zod';
 import type { SourceRef } from '../lib/envelope.js';
 import type { AdFormat, Framework, OfficialSkillRef, PlatformId, SupportLevel } from '../knowledge/schema.js';
 import type { ProjectAnalysis } from '../core/project/types.js';
+import type { RevenueRow } from '../core/revenue/types.js';
 import type { KnowledgeBase } from '../knowledge/loader.js';
 
 export interface SupportInfo {
@@ -97,13 +98,15 @@ export interface ValidationRule {
 }
 
 export interface RevenueQuery {
-  startDate: string;
-  endDate: string;
-  dimensions?: string[];
+  publisherId?: string | undefined; // admob_api 源需要（pub-xxxxxxxxxxxxxxxx）
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
+  dimensions?: string[] | undefined;
 }
 
 export interface RevenueRows {
-  rows: Array<Record<string, string | number>>;
+  rows: RevenueRow[];
+  currency?: string | undefined;
 }
 
 export interface PlatformAdapter {
