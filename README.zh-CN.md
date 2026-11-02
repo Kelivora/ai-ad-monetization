@@ -10,7 +10,7 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D20-111111)](package.json)
 [![google_mobile_ads 9.2.0](https://img.shields.io/badge/google__mobile__ads-9.2.0-111111)](knowledge/platforms/admob/sdk/flutter.json)
 
-`docs/` 里的指南是中文。英文入口在 [README.md](README.md)。双语产品页在 [`site/`](site/index.html)。
+`docs/` 里的指南是中文。英文入口在 [README.md](README.md)。双语产品页在 [kelivora.github.io/ai-ad-monetization](https://kelivora.github.io/ai-ad-monetization/)。
 
 ## 里面有什么
 

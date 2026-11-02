@@ -10,7 +10,7 @@ Coding agents are good at product. They are reckless with ads. They pick the wro
 [![Node](https://img.shields.io/badge/node-%3E%3D20-111111)](package.json)
 [![google_mobile_ads 9.2.0](https://img.shields.io/badge/google__mobile__ads-9.2.0-111111)](knowledge/platforms/admob/sdk/flutter.json)
 
-The guides under `docs/` are in Chinese. This file is the English entry point. A bilingual product page lives in [`site/`](site/index.html).
+The guides under `docs/` are in Chinese. This file is the English entry point. The bilingual product page is live at [kelivora.github.io/ai-ad-monetization](https://kelivora.github.io/ai-ad-monetization/).
 
 ## What's in the box
 
