@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-en-title="Docs · AI Ad Monetization" data-zh-title="文档 · AI Ad Monetization">Docs · AI Ad Monetization</title>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js');try{var l=localStorage.getItem('aam-lang');if(l==='zh'){document.documentElement.setAttribute('data-lang','zh');document.documentElement.lang='zh';}}catch(e){}</script>
+</head>
+<body class="docs-page">
+
+<header class="bar">
+  <a class="wordmark" href="index.html">AI Ad Monetization</a>
+  <nav class="bar-nav" aria-label="Site">
+    <a href="docs.html"><span class="en">Docs</span><span class="zh">文档</span></a>
+    <a href="index.html#verify"><span class="en">See the check</span><span class="zh">看核对</span></a>
+    <a href="index.html#support"><span class="en">Support</span><span class="zh">支持范围</span></a>
+  </nav>
+  <button class="lang" id="lang-toggle" type="button">中文</button>
+  <a class="button" href="#install"><span class="en">Give this to your agent</span><span class="zh">把这个交给 Agent</span></a>
+</header>
+
+<main>
+
+<section class="docs-head" id="top">
+  <h1 data-reveal><span class="en">Give your agent an ad expert.</span><span class="zh">给 Agent 一个广告专家。</span></h1>
+  <p class="lead" data-reveal style="--d:80ms">
+    <span class="en">Your agent already built the app. When the ads have to make money, give it this instead of letting it guess. Install it first. The steps are below.</span>
+    <span class="zh">Agent 已经把应用写好了。广告要赚钱时，把这个交给它，别让它自己猜。先装上，步骤在下面。</span>
+  </p>
+</section>
+
+<!-- 1. Install -->
+<section class="docs" id="install">
+  <h2 data-reveal><span class="en">Install</span><span class="zh">安装</span></h2>
+  <div class="docs-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en">Node.js 20 or newer runs the MCP server and the CLI. Clone the repository, install and build:</span>
+      <span class="zh">运行 MCP 服务器和 CLI 需要 Node.js 20 或更新版本。克隆仓库后安装并构建：</span>
+    </p>
+    <pre data-reveal style="--d:160ms"><code>npm install
+npm run build        # outputs packages/mcp-server/dist</code></pre>
+    <p data-reveal style="--d:240ms">
+      <span class="en">To try it in Claude Code for one session, without touching global config:</span>
+      <span class="zh">在 Claude Code 里只为当前会话试用，不改全局配置：</span>
+    </p>
+    <pre data-reveal style="--d:320ms"><code>claude --plugin-dir /path/to/ai-ad-monetization</code></pre>
+    <p data-reveal style="--d:400ms">
+      <span class="en">For a generic MCP client, point it at the built server entry:</span>
+      <span class="zh">其他 MCP 客户端把配置指向构建产物即可：</span>
+    </p>
+    <pre data-reveal style="--d:480ms"><code>{
+  "mcpServers": {
+    "ad-monetization": {
+      "command": "node",
+      "args": ["/path/to/ai-ad-monetization/packages/mcp-server/dist/index.js"]
+    }
+  }
+}</code></pre>
+    <p data-reveal style="--d:560ms">
+      <span class="en">To build the app you need Flutter 3.38.1 or newer, Xcode for iOS, and JDK 17 with Android SDK 36 for Android. If a tool is missing, that build step is skipped and named, never counted as passed.</span>
+      <span class="zh">构建应用需要 Flutter 3.38.1 或更新版本，iOS 需要 Xcode，Android 需要 JDK 17 和 Android SDK 36。缺哪个工具，对应的构建步骤就显示 skipped 并写明原因，不会算成通过。</span>
+    </p>
+  </div>
+</section>
+
+<!-- 2. Ask an agent -->
+<section class="docs" id="agent">
+  <h2 data-reveal><span class="en">Ask an agent</span><span class="zh">交给 Agent</span></h2>
+  <div class="docs-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en">Say what you want in your own words, for example:</span>
+      <span class="zh">用你自己的话说出需求即可，例如：</span>
+    </p>
+    <pre data-reveal style="--d:160ms"><code>Add a banner, an interstitial and a rewarded ad to this Flutter app.
+Show me the plan before you write.</code></pre>
+    <p data-reveal style="--d:240ms">
+      <span class="en">The skill then walks the sequence analyze, recommend, plan, confirm, apply, validate, verify. Each step shows its result before the next one runs.</span>
+      <span class="zh">Skill 会按 analyze、recommend、plan、confirm、apply、validate、verify 的顺序推进，每一步都会先给你看结果。</span>
+    </p>
+    <p data-reveal style="--d:320ms">
+      <span class="en">The write step is two-phase. First a plan with diffs and a plan hash; nothing touches disk. Applying needs <code>confirm: true</code> and the <code>expectedPlanHash</code> from the plan, so a changed project is refused instead of half-written.</span>
+      <span class="zh">写入分两步。第一步只返回计划和 diff 以及计划哈希，不写盘；执行 apply 必须带 <code>confirm: true</code> 和计划返回的 <code>expectedPlanHash</code>，工程一旦被改动就会拒绝，避免写一半。</span>
+    </p>
+    <div class="frag" data-ui data-reveal style="--d:400ms">
+      <span class="frag-row"><span class="frag-file">generate_ad_integration</span><span>mode: apply</span></span>
+      <span class="frag-row"><span>confirm: true</span><span>expectedPlanHash: &lt;planHash&gt;</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- 3. The tools -->
+<section class="docs" id="tools">
+  <h2 data-reveal><span class="en">The tools</span><span class="zh">工具</span></h2>
+  <div class="docs-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en">Fourteen tools. Only <code>generate_ad_integration</code> writes the project. <code>verify_ad_integration</code> runs commands and does not edit source.</span>
+      <span class="zh">共 14 个工具。只有 <code>generate_ad_integration</code> 会写入工程；<code>verify_ad_integration</code> 会执行命令，但不修改源码。</span>
+    </p>
+    <table data-reveal style="--d:160ms">
+      <thead><tr><th><span class="en">Name</span><span class="zh">名称</span></th><th><span class="en">Does</span><span class="zh">性质</span></th></tr></thead>
+      <tbody>
+        <tr><td>search_ad_platforms</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>compare_ad_platforms</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>recommend_ad_platform</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>get_platform_docs</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>get_sdk_compatibility</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>analyze_project</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>get_integration_guide</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>plan_ad_placements</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>validate_ad_config</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>build_integration_report</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>get_ad_revenue</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>analyze_ad_performance</td><td><span class="en">reads</span><span class="zh">只读</span></td></tr>
+        <tr><td>verify_ad_integration</td><td><span class="en">runs commands</span><span class="zh">执行命令</span></td></tr>
+        <tr><td>generate_ad_integration</td><td><span class="en">writes</span><span class="zh">写入</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 4. What gets written -->
+<section class="docs" id="written">
+  <h2 data-reveal><span class="en">What gets written</span><span class="zh">写了什么</span></h2>
+  <div class="docs-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en">Generated code lives under lib/ads, plus one test that plays a test ad on a device. Your own code is not rewritten:</span>
+      <span class="zh">生成的代码放在 lib/ads 下，另外还有一个在设备上试播测试广告的测试。你自己的代码不会被改写：</span>
+    </p>
+    <table data-reveal style="--d:160ms">
+      <thead><tr><th><span class="en">File</span><span class="zh">文件</span></th><th><span class="en">Role</span><span class="zh">作用</span></th></tr></thead>
+      <tbody>
+        <tr><td>ads.dart</td><td><span class="en">unified export</span><span class="zh">统一导出</span></td></tr>
+        <tr><td>ad_unit_ids.dart</td><td><span class="en">ad unit IDs, Google test IDs by default</span><span class="zh">广告单元 ID，默认是 Google 官方测试 ID</span></td></tr>
+        <tr><td>ads_consent.dart</td><td><span class="en">UMP consent flow wrapper</span><span class="zh">UMP 同意流程封装</span></td></tr>
+        <tr><td>ads_initializer.dart</td><td><span class="en">consent first, initializes only when canRequestAds() is true</span><span class="zh">先走同意流程，canRequestAds() 为 true 才初始化</span></td></tr>
+        <tr><td>anchored_banner_ad.dart</td><td><span class="en">adaptive anchored banner widget</span><span class="zh">自适应锚定横幅 Widget</span></td></tr>
+        <tr><td>interstitial_ad_controller.dart</td><td><span class="en">preload, frequency cap, reload after close</span><span class="zh">预加载、频控、关闭后重新加载</span></td></tr>
+        <tr><td>rewarded_ad_controller.dart</td><td><span class="en">preload, isReady state, reward callback</span><span class="zh">预加载、isReady 状态、奖励回调</span></td></tr>
+        <tr><td>integration_test/ads_smoke_test.dart</td><td><span class="en">plays a test ad on a device</span><span class="zh">在设备上试播测试广告</span></td></tr>
+      </tbody>
+    </table>
+    <p data-reveal style="--d:240ms">
+      <span class="en">The interstitial and rewarded controllers expose <code>lastLoadError</code> with the most recent load failure. A settings entry can call <code>showPrivacyOptionsAndRetry()</code> so an EEA user can change consent later. Real IDs are injected at build time, e.g. <code>--dart-define=ADMOB_ANDROID_BANNER_ID=ca-app-pub-xxxx/yyyy</code>, without editing source.</span>
+      <span class="zh">插屏和激励控制器提供 <code>lastLoadError</code>，可以读到最近一次加载失败。设置页可以调用 <code>showPrivacyOptionsAndRetry()</code>，让 EEA 用户之后随时修改同意状态。真实 ID 在构建时注入，例如 <code>--dart-define=ADMOB_ANDROID_BANNER_ID=ca-app-pub-xxxx/yyyy</code>，不需要改源码。</span>
+    </p>
+  </div>
+</section>
+
+<!-- 5. Verify -->
+<section class="docs" id="verify">
+  <h2 data-reveal><span class="en">Verify</span><span class="zh">验证</span></h2>
+  <div class="docs-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en">Three levels, reported separately: static config checks, platform builds, and test ads actually loading on a device you name. A missing toolchain makes that step skipped, and skipped is never passed.</span>
+      <span class="zh">三级分开报告：静态配置检查、平台构建、以及在你指定的设备上真实加载测试广告。缺工具链的步骤是 skipped，而跳过永远不算通过。</span>
+    </p>
+    <pre data-reveal style="--d:160ms"><code>node packages/mcp-server/dist/cli.js verify &lt;project&gt; \
+  --levels static,build,runtime --devices &lt;id&gt; --show-fullscreen</code></pre>
+    <p data-reveal style="--d:240ms">
+      <span class="en">Exit codes: 0 means no requested level failed, 1 means a level failed, 3 means every requested level was skipped.</span>
+      <span class="zh">退出码：0 表示请求的级别没有失败；1 表示有级别失败；3 表示所有请求的级别都被跳过。</span>
+    </p>
+    <div class="ledger ledger-static" data-ui data-reveal style="--d:320ms" aria-label="Verify result">
+      <div class="ledger-levels">
+        <div class="ledger-level">
+          <span class="ledger-name">static</span>
+          <span class="ledger-status is-passed"><span class="en">passed</span><span class="zh">通过</span></span>
+          <span class="ledger-detail"><span class="en">21 passed, 0 failed</span><span class="zh">21 项通过，0 项失败</span></span>
+        </div>
+        <div class="ledger-level">
+          <span class="ledger-name">build</span>
+          <span class="ledger-status is-passed"><span class="en">passed</span><span class="zh">通过</span></span>
+          <ul class="ledger-steps">
+            <li><span class="step-name">pub get</span><span class="step-status is-passed"><span class="en">passed</span><span class="zh">通过</span></span></li>
+            <li><span class="step-name">analyze</span><span class="step-status is-passed"><span class="en">passed</span><span class="zh">通过</span></span></li>
+            <li><span class="step-name"><span class="en">Android debug</span><span class="zh">Android 调试构建</span></span><span class="step-status is-passed"><span class="en">passed</span><span class="zh">通过</span></span></li>
+            <li><span class="step-name"><span class="en">iOS simulator</span><span class="zh">iOS 模拟器</span></span><span class="step-status is-passed"><span class="en">passed</span><span class="zh">通过</span></span></li>
+          </ul>
+        </div>
+        <div class="ledger-level">
+          <span class="ledger-name">runtime</span>
+          <span class="ledger-status is-passed"><span class="en">passed</span><span class="zh">通过</span></span>
+          <span class="ledger-detail"><span class="en">6 of 6 checks passed</span><span class="zh">6 项全部通过</span></span>
+        </div>
+      </div>
+      <p class="ledger-footer"><span class="en">Android and iOS both built.</span><span class="zh">Android 和 iOS 都完成了构建。</span></p>
+    </div>
+    <p data-reveal style="--d:320ms">
+      <span class="en">The runtime level loads real Google test ads on the devices you name. These are the tool's own captures from that level:</span>
+      <span class="zh">运行时这一级会在你指定的设备上真实加载 Google 测试广告。下面是这一级跑出来的截图：</span>
+    </p>
+    <div class="shots" data-reveal style="--d:400ms">
+      <figure class="shot">
+        <img src="media/ios-banner.png" alt="iOS banner test ad" data-zh-alt="iOS 横幅测试广告" width="1206" height="2622" loading="lazy">
+      </figure>
+      <figure class="shot">
+        <img src="media/ios-rewarded.png" alt="iOS rewarded test ad with the reward granted" data-zh-alt="iOS 激励视频测试广告，奖励已发放" width="1206" height="2622" loading="lazy">
+      </figure>
+      <figure class="shot">
+        <img src="media/android-banner.png" alt="Android banner test ad" data-zh-alt="Android 横幅测试广告" width="1080" height="2400" loading="lazy">
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- 6. When it fails -->
+<section class="docs" id="fails">
+  <h2 data-reveal><span class="en">When it fails</span><span class="zh">出错的时候</span></h2>
+  <div class="docs-col">
+    <p data-reveal style="--d:80ms">
+      <span class="en">The failures seen most often, and what they mean:</span>
+      <span class="zh">最常见的问题和它们的含义：</span>
+    </p>
+    <table data-reveal style="--d:160ms">
+      <thead><tr><th><span class="en">Symptom</span><span class="zh">现象</span></th><th><span class="en">Cause and fix</span><span class="zh">原因与处理</span></th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="en">Android crashes at launch: “The Google Mobile Ads SDK was initialized incorrectly”</span><span class="zh">Android 启动崩溃：“The Google Mobile Ads SDK was initialized incorrectly”</span></td>
+          <td><span class="en">AndroidManifest.xml is missing the App ID. Run validate_ad_config and fix the ANDROID_APP_ID rule.</span><span class="zh">AndroidManifest.xml 缺少 App ID。重新跑 validate_ad_config，按 ANDROID_APP_ID 规则修复。</span></td>
+        </tr>
+        <tr>
+          <td><span class="en">iOS crashes at launch: GADInvalidInitializationException</span><span class="zh">iOS 启动崩溃：GADInvalidInitializationException</span></td>
+          <td><span class="en">Info.plist is missing GADApplicationIdentifier. Same check, IOS_APP_ID rule.</span><span class="zh">Info.plist 缺少 GADApplicationIdentifier。同一个检查，看 IOS_APP_ID 规则。</span></td>
+        </tr>
+        <tr>
+          <td><span class="en">uses-sdk:minSdkVersion, manifest merger failure</span><span class="zh">uses-sdk:minSdkVersion，manifest 合并失败</span></td>
+          <td><span class="en">Android minSdk is below 24. Set it to 24 or higher in android/app/build.gradle(.kts).</span><span class="zh">Android minSdk 低于 24。在 android/app/build.gradle(.kts) 里设为 24 以上。</span></td>
+        </tr>
+        <tr>
+          <td><span class="en">canRequestAds() stays false</span><span class="zh">canRequestAds() 一直为 false</span></td>
+          <td><span class="en">The GDPR / US state privacy message was never published in AdMob's Privacy &amp; messaging. Publish it yourself; the tool will not log in.</span><span class="zh">AdMob 后台的 GDPR / 美国州隐私消息还没有发布。需要你本人去发布；工具不会代为登录。</span></td>
+        </tr>
+        <tr>
+          <td><span class="en">LoadAdError code 3 (NO_FILL)</span><span class="zh">LoadAdError code 3（NO_FILL）</span></td>
+          <td><span class="en">A brand-new ad unit can take hours to serve. Use the test IDs while developing.</span><span class="zh">新建的广告单元可能要几个小时才有填充。开发期使用测试 ID。</span></td>
+        </tr>
+        <tr>
+          <td><span class="en">Rewarded video fails on Android with code 0, on a mainland China network</span><span class="zh">中国大陆网络下，Android 激励视频一直 code 0 失败</span></td>
+          <td><span class="en">The video creative sits on a CDN the Android ad WebView cannot load. The same code passes on iOS and on Android through a proxy, so it is the network, not the integration.</span><span class="zh">视频素材被分配到 Android 广告 WebView 无法加载的 CDN。同样的代码在 iOS 上、以及 Android 走代理时都能通过，所以是网络问题，不是接入的问题。</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-row footer-row-last">
+    <div class="tile tile-mark"><p>AI Ad Monetization</p></div>
+    <a class="tile tile-cta" href="index.html"><p><span class="en">Back to the product page</span><span class="zh">回到产品页</span></p></a>
+  </div>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>

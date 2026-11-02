@@ -1,111 +1,157 @@
 # AI Ad Monetization
 
-面向 AI 应用开发者的跨平台广告变现助手。它由三部分组成：
+[English](README.md) · [中文](README.zh-CN.md)
 
-- **MCP 服务器**（`packages/mcp-server`）：14 个工具，覆盖平台选型、工程分析、接入、校验、构建验证和收益分析。
-- **Agent Skills**（`skills/`）：8 个工作流 Skill，告诉 Agent 何时调用哪个工具、怎么做决策、出错怎么办。
-- **知识库**（`knowledge/`）：AdMob、AppLovin MAX、Unity LevelPlay 的官方资料摘要。每条都记录来源、核实版本和日期。
+Your agent built the app. Now make it pay.
 
-## 当前范围（MVP）
+Coding agents are good at product. They are reckless with ads. They pick the wrong network, skip consent, ship Google’s test IDs, and call a green build a working ad. Point your agent at this repository. It chooses the network, writes AdMob into Flutter, and will not call a skipped check a pass.
 
-| 平台 × 框架 | 支持等级 | 说明 |
+[![License: MIT](https://img.shields.io/badge/license-MIT-111111)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D20-111111)](package.json)
+[![google_mobile_ads 9.2.0](https://img.shields.io/badge/google__mobile__ads-9.2.0-111111)](knowledge/platforms/admob/sdk/flutter.json)
+
+The guides under `docs/` are in Chinese. This file is the English entry point. A bilingual product page lives in [`site/`](site/index.html).
+
+## What's in the box
+
+Three pieces, used together or apart:
+
+| Piece | Where | Role |
 | --- | --- | --- |
-| AdMob × Flutter（Android + iOS） | **自动接入** | Banner、Interstitial、Rewarded；含 UMP 同意流程、SKAdNetwork、测试 ID |
-| AdMob × 原生 Android / iOS / Unity | 委派官方 Skill | `npx skills add google/skills/skills/ads` |
-| Unity LevelPlay × Unity | 委派官方 Skill | `npx skills add Unity-Technologies/skills` |
-| AppLovin MAX、LevelPlay × Flutter 等 | 仅知识库 | 可参与选型与对比，提供文档引导，不自动写入 |
+| MCP server | `packages/mcp-server` | 14 tools. Twelve only read. One runs build and test commands. One writes the project, and only after a confirmed plan. |
+| Skills | `skills/` | Eight workflows. They say which tool to call, what to decide, and what to do when a step fails. |
+| Knowledge base | `knowledge/` | AdMob, AppLovin MAX, and Unity LevelPlay, each note tagged with its source, version, and the date it was checked. |
 
-本项目刻意只把一条链路做扎实。在 Flutter 3.47 新建工程上完成接入后：
+## What shipped, on a device
 
-- `flutter analyze` 无问题，Android 与 iOS debug 构建都通过，静态校验 0 失败。
-- 在 iOS 和 Android 模拟器上都自动加载了横幅、插屏和激励三种 Google 测试广告，并触发了奖励回调。
-- 在中国大陆网络出口下，Android 激励视频的素材会被拦截而加载失败，换网络即可（见[故障排查](docs/troubleshooting.md)）。
+Generated against a fresh Flutter 3.47 app, using Google's test ad units. These are captures from the acceptance run, not mockups.
 
-详见 [MVP 验收报告](docs/mvp-acceptance-report.md)。当前状态适合小规模公开试用。
+| iOS banner | iOS rewarded, reward granted | Android banner |
+| --- | --- | --- |
+| ![iOS test banner](docs/assets/ios-banner.png) | ![iOS rewarded test ad](docs/assets/ios-rewarded.png) | ![Android test banner](docs/assets/android-banner.png) |
 
-## 快速开始
+On that run, `flutter analyze` reported no issues, and both the Android debug APK and the iOS simulator build succeeded. The device smoke test passed 6 of 6 on iOS and, on Android, 6 of 6 once the emulator could reach Google's ad servers. From a mainland China network the Android rewarded creative failed to download. That failure is recorded as a failure. Details, versions, and the commands are in the [acceptance report](docs/mvp-acceptance-report.md).
+
+## Scope
+
+| Combination | Level | What the server does |
+| --- | --- | --- |
+| AdMob × Flutter, Android and iOS | Automated | Banner, interstitial, and rewarded. UMP consent, SKAdNetwork, test IDs by default. |
+| AdMob × native Android, iOS, or Unity | Delegated | Points at Google's skill: `npx skills add google/skills/skills/ads` |
+| Unity LevelPlay × Unity | Delegated | Points at Unity's skill: `npx skills add Unity-Technologies/skills` |
+| AppLovin MAX, LevelPlay × Flutter, and the rest | Knowledge only | Compared and documented. Nothing is written into the project. |
+
+## Quick start
+
+Requires Node.js 20 or newer.
 
 ```bash
-npm install && npm run build
-node packages/mcp-server/scripts/smoke-stdio.mjs     # 列出全部工具
-bash scripts/e2e-build.sh ios                        # 在示例工程副本上跑完整链路
+npm install
+npm run build
+node packages/mcp-server/scripts/smoke-stdio.mjs
 ```
 
-在 Claude Code 中只为当前会话加载插件（不修改全局配置）：
+Load it for one Claude Code session, without changing your global config:
 
 ```bash
 claude --plugin-dir /path/to/ai-ad-monetization
 ```
 
-长期安装、Cursor 或其他 MCP 客户端的接入方法见 [安装指南](docs/install.md)。
+Then ask for the plan before any write:
 
-## 工具
+> Add a banner, an interstitial, and a rewarded ad to this Flutter app. Show me the plan before you write anything.
 
-只读工具和修改工程的工具是分开的。唯一会写入用户工程的是 `generate_ad_integration`，它要求先生成计划、再带确认标志和计划哈希执行。
+`bash scripts/e2e-build.sh ios` repeats the whole path against a throwaway copy of `examples/flutter_demo_app`. The example app itself is not modified. Android builds need JDK 17 and Android SDK 36. If either is missing, that step is skipped and the script says so.
 
-| 工具 | 类型 | 作用 |
+Install paths for Cursor and other MCP clients are in [docs/install.md](docs/install.md).
+
+## How a write happens
+
+1. `analyze_project` reads the app: framework, native config, ads code already present.
+2. `recommend_ad_platform` names a platform and why. For a news app on Flutter aimed at the US and Europe, that is AdMob.
+3. `generate_ad_integration` with `mode: "plan"` returns the diff and a plan hash. The tree is unchanged.
+4. A second call with `mode: "apply"`, `confirm: true`, and `expectedPlanHash` writes the files. If the tree changed after the plan, the call returns `PLAN_MISMATCH` and writes nothing.
+5. `validate_ad_config` checks the result. `verify_ad_integration` then runs static checks, builds, and, when you pass device ids, a smoke test that loads real test ads.
+
+The CLI does the same thing without an agent:
+
+```bash
+node packages/mcp-server/dist/cli.js plan  <project> --formats banner,interstitial,rewarded
+node packages/mcp-server/dist/cli.js apply <project> --formats banner,interstitial,rewarded --yes
+node packages/mcp-server/dist/cli.js verify <project> --levels static,build,runtime --devices <id> --show-fullscreen
+```
+
+`verify` exits 0 when no requested level failed, 1 when static, build, or runtime failed, and 3 when every requested level was skipped.
+
+## Tools
+
+| Tool | Access | Does |
 | --- | --- | --- |
-| `search_ad_platforms` | 只读 | 按关键词、框架、市场检索平台 |
-| `compare_ad_platforms` | 只读 | 多平台对比（格式、聚合、框架支持、市场适配） |
-| `recommend_ad_platform` | 只读 | 按应用类别、目标、市场给出推荐与理由 |
-| `get_platform_docs` | 只读 | 返回知识库中的官方文档摘要与链接 |
-| `get_sdk_compatibility` | 只读 | SDK 版本要求，可对照具体工程检查 |
-| `analyze_project` | 只读 | 识别框架、原生配置、已有广告代码和隐私组件 |
-| `get_integration_guide` | 只读 | 接入指南；非自动化组合给出官方 Skill 或文档步骤 |
-| `plan_ad_placements` | 只读 | 广告位、频控与布局建议 |
-| `validate_ad_config` | 只读 | 静态规则校验（development / release 两种口径） |
-| `build_integration_report` | 只读 | 生成 Markdown 接入报告 |
-| `get_ad_revenue` | 只读 | 读取收益数据（导出文件或用户自备令牌的 AdMob API） |
-| `analyze_ad_performance` | 只读 | eCPM、填充率、展示率、CTR 与启发式建议 |
-| `verify_ad_integration` | 执行命令 | 三级验证：静态、构建、运行时（指定设备时在模拟器或真机上自动跑冷烟测试）；不修改源码 |
-| `generate_ad_integration` | **写入** | 计划 → 确认 → 写入；自动备份，幂等，不覆盖业务代码 |
+| `search_ad_platforms` | Read | Search platforms by keyword, framework, and market. |
+| `compare_ad_platforms` | Read | Compare formats, mediation, framework support, and market fit. |
+| `recommend_ad_platform` | Read | Recommend a platform from the app category, goal, and markets. |
+| `get_platform_docs` | Read | Official notes from the knowledge base, with links. |
+| `get_sdk_compatibility` | Read | SDK requirements, optionally checked against a project. |
+| `analyze_project` | Read | Framework, native config, existing ads code, privacy pieces. |
+| `get_integration_guide` | Read | Integration steps, or the official skill to install instead. |
+| `plan_ad_placements` | Read | Placements, frequency caps, and layout warnings. |
+| `validate_ad_config` | Read | Static rules, in a `development` or `release` profile. |
+| `build_integration_report` | Read | A Markdown report of the integration. |
+| `get_ad_revenue` | Read | Revenue from an export file, or from the AdMob API with a token you supply. |
+| `analyze_ad_performance` | Read | eCPM, match rate, show rate, CTR, and heuristic notes. |
+| `verify_ad_integration` | Runs commands | Static, build, and runtime. Does not edit source. |
+| `generate_ad_integration` | **Writes** | Plan, then confirm, then write. Backs up files first. Idempotent. |
 
 ## Skills
 
-| Skill | 职责 |
+| Skill | Owns |
 | --- | --- |
-| `ad-monetization` | 总入口，按阶段编排下面的 Skill |
-| `ad-platform-selector` | 平台选型 |
-| `ad-unit-planner` | 广告位规划 |
-| `ad-compliance-checker` | 隐私与合规（GDPR/UMP、美国州隐私法、ATT、儿童） |
-| `ad-sdk-integrator` | SDK 接入 |
-| `ad-config-validator` | 配置校验 |
-| `ad-integration-tester` | 构建验证与运行时检查 |
-| `ad-revenue-optimizer` | 收益分析与优化 |
+| `ad-monetization` | The whole pass, in order. |
+| `ad-platform-selector` | Choosing a network. |
+| `ad-unit-planner` | Where ads go, and how often. |
+| `ad-compliance-checker` | UMP, US state privacy, ATT, and child-directed treatment. |
+| `ad-sdk-integrator` | Writing the SDK in. |
+| `ad-config-validator` | The static rules. |
+| `ad-integration-tester` | Builds and the on-device smoke test. |
+| `ad-revenue-optimizer` | Reading revenue and suggesting changes that stay inside AdMob policy. |
 
-## 设计原则在代码中的体现
+## Rules the server enforces
 
-- **不重复官方 Skill**：官方已覆盖的组合返回 `delegate-official-skill` 和安装命令。
-- **MCP 与 Skills 解耦**：Skills 只引用工具名和返回字段；没有 MCP 时也能按文档引导。
-- **统一但不强求一致的适配器**：`PlatformAdapter` 只规定能力边界，平台专属参数由各适配器的 `optionsSchema` 自己校验。
-- **先检查再修改**：生成计划前先分析工程现有代码与依赖；计划涉及的文件在 git 中有未提交改动时默认拒绝写入。
-- **默认测试 ID**：生成代码默认使用 Google 官方测试 ID，真实 ID 通过 `--dart-define` 注入；`release` 校验会把测试 ID 判为失败。
-- **不覆盖业务逻辑**：只新增 `lib/ads/` 下的文件，`main.dart` 插入的代码在标记块内；已有配置跳过；写入前备份原文件。
-- **合规是接入流程的一部分**：生成的初始化代码先走 UMP 同意流程，`canRequestAds()` 为 true 才初始化 SDK。
-- **三级验证分开报告**：静态通过、构建通过、真实广告展示是三件事，跳过的步骤标记为 `skipped`，不算通过。
-- **账号操作由用户完成**：创建广告单元、发布隐私消息、获取 API 令牌都只给步骤，不代为操作。
+- Official skills are not reimplemented. A covered combination returns `delegate-official-skill` and the install command.
+- Skills name tools. They do not import the server. Without the server they still have a written procedure.
+- `PlatformAdapter` describes what a network can do. Each adapter validates its own options.
+- A plan is computed from the project as it is. If a file the plan must touch has uncommitted changes, the write is refused until you pass `allowDirty`.
+- Generated code uses Google's test IDs. Production IDs are injected with `--dart-define`. The `release` profile fails while test IDs remain.
+- New code lands in `lib/ads/`. The `main.dart` edit sits between `ai-ad-monetization:begin/end` markers. Existing settings are skipped. Originals are copied to `.ai-ad-monetization/backups/` before a write.
+- Initialization gathers UMP consent first. `MobileAds.instance.initialize()` runs only when `canRequestAds()` is true.
+- Static, build, and runtime are three results. A missing JDK or Android SDK skips the Android build and the report says the Android build was not verified.
+- Creating the AdMob app, the ad units, the privacy messages, and the API token is left to you. The tools describe the steps and stop there.
 
-## 目录
+## Layout
 
 ```
-packages/mcp-server/   MCP 服务器、CLI、适配器、测试
-skills/                8 个 Agent Skill
-knowledge/             知识库（平台、SDK、隐私、错误码、文档摘要）
-examples/              示例 Flutter 工程（只读）与提示词
-scripts/               插件启动脚本、知识库检查、端到端脚本
-docs/                  架构、调研、安装、使用、排错、路线图、验收报告
+packages/mcp-server/   server, CLI, adapters, tests
+skills/                eight agent skills
+knowledge/             platforms, SDKs, privacy, error codes
+examples/              a pristine Flutter app, plus example prompts
+scripts/               plugin launcher, knowledge check, end-to-end script
+docs/                  research, architecture, install, usage, troubleshooting
+site/                  bilingual product page and usage pages
 ```
 
-## 文档
+## Documentation
 
-- [竞品调研](docs/research/competitive-analysis.md)
-- [架构设计](docs/architecture.md)
-- [安装指南](docs/install.md)
-- [使用示例](docs/usage.md) 与 [示例提示词](examples/prompts.md)
-- [故障排查](docs/troubleshooting.md)
-- [扩展路线图与成本评估](docs/roadmap.md)
-- [MVP 验收报告](docs/mvp-acceptance-report.md)
+| | |
+| --- | --- |
+| [Install](docs/install.md) | Plugin, bare MCP config, environment variables. |
+| [Usage](docs/usage.md) | Tool calls, the generated Dart API, the CLI. |
+| [Example prompts](examples/prompts.md) | Sentences you can paste to an agent. |
+| [Troubleshooting](docs/troubleshooting.md) | Error codes, build failures, the China-network rewarded case. |
+| [Architecture](docs/architecture.md) | The design contract. |
+| [Competitive notes](docs/research/competitive-analysis.md) | Official skills and what this repo does not duplicate. |
+| [Roadmap](docs/roadmap.md) | What MAX, LevelPlay, and mediation adapters would cost. |
+| [Acceptance report](docs/mvp-acceptance-report.md) | The run this README cites. |
 
-## 许可证
+## License
 
-MIT
+[MIT](LICENSE)

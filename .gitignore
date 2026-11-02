@@ -1,7 +1,42 @@
+# Dependencies and build output
 node_modules/
 dist/
 coverage/
-.DS_Store
-research/vendor/
-*.log
+*.tsbuildinfo
+
+# Local runs: end-to-end copies, reports, and the integration tool's own backups
 .tmp/
+**/.ai-ad-monetization/
+
+# Design scratch used while building the site. Not part of the product.
+.taste-skill/
+site/DESIGN.md
+
+# Competitor checkouts kept locally for research. The notes live in docs/research.
+research/vendor/
+
+# Secrets and machine-specific config
+.env
+.env.*
+!.env.example
+local.properties
+key.properties
+**/*.keystore
+**/*.jks
+
+# Editors and OS
+.DS_Store
+.idea/
+*.iml
+*.ipr
+*.iws
+*.log
+
+# Flutter / native build junk, if a demo is built inside the repo
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/build/
+**/Pods/
+**/.gradle/
+**/.cxx/
